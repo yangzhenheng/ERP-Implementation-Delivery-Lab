@@ -1,5 +1,5 @@
 import os
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -22,6 +22,10 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, rela
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
+
+
+def now_utc() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 def _database_url() -> str:
@@ -65,7 +69,7 @@ class Customer(Base):
     phone: Mapped[str | None] = mapped_column(String(32))
     address: Mapped[str | None] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
 
     orders: Mapped[list["SalesOrder"]] = relationship(back_populates="customer")
 
@@ -99,7 +103,7 @@ class Inventory(Base):
     warehouse_id: Mapped[int] = mapped_column(ForeignKey("warehouses.warehouse_id"), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     safety_stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc, nullable=False)
 
     product: Mapped[Product] = relationship()
     warehouse: Mapped[Warehouse] = relationship()
@@ -143,7 +147,7 @@ class InventoryTransaction(Base):
     transaction_type: Mapped[str] = mapped_column(String(32), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     reference_no: Mapped[str | None] = mapped_column(String(64))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
 
     product: Mapped[Product] = relationship()
     warehouse: Mapped[Warehouse] = relationship()
@@ -174,8 +178,8 @@ class Issue(Base):
     root_cause: Mapped[str | None] = mapped_column(Text)
     solution: Mapped[str | None] = mapped_column(Text)
     owner: Mapped[str] = mapped_column(String(64), default="implementation_engineer", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    resolved_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class OperationLog(Base):
@@ -187,7 +191,7 @@ class OperationLog(Base):
     module: Mapped[str] = mapped_column(String(64), nullable=False)
     result: Mapped[str] = mapped_column(String(32), nullable=False)
     request_id: Mapped[str | None] = mapped_column(String(64))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
 
 
 Index("idx_sales_orders_status", SalesOrder.status)
@@ -283,6 +287,6 @@ def seed_demo_data(db: Session) -> None:
         [
             Issue(title="Low stock blocks sales order confirmation", module="inventory", severity="P2", status="open", description="Mock issue generated from demo stock check.", owner="implementation_engineer"),
             Issue(title="CSV template date format mismatch", module="data_import", severity="P3", status="open", description="Training example for data migration validation.", owner="implementation_engineer"),
-            Issue(title="Nginx reverse proxy path verified", module="deployment", severity="P2", status="closed", root_cause="Nginx config needed upstream path check.", solution="Updated reverse proxy location and health check.", owner="implementation_engineer", resolved_at=datetime.utcnow()),
+            Issue(title="Nginx reverse proxy path verified", module="deployment", severity="P2", status="closed", root_cause="Nginx config needed upstream path check.", solution="Updated reverse proxy location and health check.", owner="implementation_engineer", resolved_at=now_utc()),
         ]
     )

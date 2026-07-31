@@ -1,6 +1,6 @@
 # Evidence
 
-Date: 2026-07-31
+Date: 2026-08-01
 
 ## Verified Locally
 
@@ -13,6 +13,9 @@ Date: 2026-07-31
 - HTTP result: health, dashboard, customers and system status all `[PASS]`.
 - Python compile check passed with `python -m compileall app scripts tests`.
 - Docker Compose YAML parsed successfully with services: app, mysql, nginx, redis.
+- FastAPI lifespan startup verified through local HTTP checks.
+- GitHub Actions CI workflow added for Python 3.11 and 3.12 test runs.
+- Project governance files added: `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, `LICENSE`, `.gitattributes`, `pyproject.toml`.
 - Docker Desktop installation was attempted through winget. The installer downloaded and hash verification succeeded, then failed because Administrator/UAC permission was required. Exit code: `4294967291`.
 
 ## Real Technical Chain

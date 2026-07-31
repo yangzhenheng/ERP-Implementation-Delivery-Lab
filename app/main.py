@@ -2,7 +2,8 @@ import logging
 import os
 import socket
 import uuid
-from datetime import date, datetime
+from contextlib import asynccontextmanager
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
@@ -30,23 +31,44 @@ from .db import (
     Warehouse,
     get_session,
     init_db,
+    now_utc,
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 
+
+class RequestLogDefaults(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        if not hasattr(record, "request_id"):
+            record.request_id = "-"
+        if not hasattr(record, "module"):
+            record.module = "system"
+        return True
+
+
 logging.basicConfig(
     filename=LOG_DIR / "app.log",
     level=logging.INFO,
     format="%(asctime)s %(levelname)s request_id=%(request_id)s module=%(module)s %(message)s",
 )
+for handler in logging.getLogger().handlers:
+    handler.addFilter(RequestLogDefaults())
 logger = logging.getLogger("erp_lab")
+
+
+@asynccontextmanager
+async def lifespan(app_: FastAPI):
+    init_db()
+    yield
+
 
 app = FastAPI(
     title="Manufacturing ERP Implementation Delivery Lab",
-    version="2.0.0",
+    version="2.1.0",
     description="An independently built ERP implementation interview lab. Demo data is mock data, not customer production data.",
+    lifespan=lifespan,
 )
 app.mount("/static", StaticFiles(directory=BASE_DIR / "app" / "static"), name="static")
 
@@ -123,11 +145,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return api_error("validation error: " + str(exc.errors()[0]["msg"]), 422)
-
-
-@app.on_event("startup")
-def startup():
-    init_db()
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -283,7 +300,7 @@ def create_order(payload: SalesOrderCreate, request: Request, db: Session = Depe
     if not customer:
         raise HTTPException(status_code=404, detail="customer not found")
 
-    order_no = payload.order_no or f"SO{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+    order_no = payload.order_no or f"SO{now_utc().strftime('%Y%m%d%H%M%S')}"
     if db.scalar(select(SalesOrder).where(SalesOrder.order_no == order_no)):
         raise HTTPException(status_code=409, detail="order_no already exists")
 
@@ -370,7 +387,7 @@ def update_issue(issue_id: int, payload: IssueUpdate, request: Request, db: Sess
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(issue, key, value)
     if issue.status == "closed" and issue.resolved_at is None:
-        issue.resolved_at = datetime.utcnow()
+        issue.resolved_at = now_utc()
     write_log(db, payload.owner or issue.owner, "update", "issues", "success", request.state.request_id)
     db.commit()
     return api_ok(issue)

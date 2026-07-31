@@ -1,10 +1,10 @@
 # Final Acceptance Report
 
-Date: 2026-07-31
+Date: 2026-08-01
 
 Project: Manufacturing ERP Implementation Delivery Lab
 
-Version: 2.0.0
+Version: 2.1.0
 
 ## Positioning
 
@@ -40,6 +40,8 @@ This is an independently built interview demonstration project / implementation 
 - Backup/restore scripts
 - Troubleshooting playbook
 - Interview and demo documents
+- GitHub Actions CI workflow
+- Project metadata, security, contribution and changelog files
 
 ## Actual Test Results
 

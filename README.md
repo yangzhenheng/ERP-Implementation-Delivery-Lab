@@ -1,8 +1,18 @@
 # Manufacturing ERP Implementation Delivery Lab
 
+[![CI](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/workflows/ci.yml/badge.svg)](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/workflows/ci.yml)
+
 A hands-on ERP implementation laboratory covering deployment, MySQL, Linux, data migration, API integration, troubleshooting, training and go-live delivery.
 
 This is an independently built interview demonstration project / implementation lab. It is not a commercial customer production system. ERP business data is mock data.
+
+## Project Status
+
+- Local FastAPI/SQLite mode: verified.
+- Automated tests: verified.
+- CSV import workflow: verified.
+- Docker Compose configuration: syntax checked.
+- Docker/MySQL/Redis/Nginx runtime: prepared, requires Docker Desktop or Docker Engine.
 
 ## Architecture
 
@@ -32,6 +42,13 @@ flowchart LR
 ## Tech Stack
 
 FastAPI, Python, SQLAlchemy, Pydantic, SQLite, MySQL 8, Redis, Nginx, Docker Compose, pytest and curl.
+
+## Quality Gates
+
+- `pytest -q`
+- `python -m compileall app scripts tests`
+- `docker compose config --quiet`
+- `python scripts/verify_deployment.py --base-url http://127.0.0.1:8000`
 
 ## Business Modules
 
@@ -135,7 +152,20 @@ Linux scripts are under `deploy/linux/`:
 pytest -q
 ```
 
-Latest local result: `9 passed` on 2026-07-31.
+Latest local result: `9 passed` on 2026-08-01.
+
+## Repository Structure
+
+```text
+app/                  FastAPI application, SQLAlchemy models and dashboard UI
+data/import/          Mock CSV files for migration demonstration
+deploy/               Nginx, systemd and Linux deployment scripts
+docs/                 Implementation, migration, go-live and troubleshooting docs
+scripts/              Import, verification, Docker and MySQL helper scripts
+sql/                  MySQL schema, seed data, interview queries, indexes and views
+tests/                pytest API and business-flow tests
+troubleshooting/      Recoverable local demo incident cases
+```
 
 ## Interview Boundary
 
@@ -150,6 +180,9 @@ Correct statement: I do not claim this is a real customer production ERP project
 - `docs/BACKUP_RESTORE.md`
 - `docs/GO_LIVE_CHECKLIST.md`
 - `docs/DOCKER_FULL_STACK_VERIFICATION.md`
+- `CHANGELOG.md`
+- `CONTRIBUTING.md`
+- `SECURITY.md`
 - `INTERVIEW_GUIDE.md`
 - `DEMO_SCRIPT.md`
 - `EVIDENCE.md`
