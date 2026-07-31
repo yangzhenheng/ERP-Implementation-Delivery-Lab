@@ -1,0 +1,3 @@
+order_no,customer_code,product_code,quantity,status
+SO-MOCK-001,CUST-M001,SKU-M900,2,draft
+SO-MOCK-002,CUST-M002,SKU-M901,50,draft

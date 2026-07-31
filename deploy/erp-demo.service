@@ -1,0 +1,14 @@
+[Unit]
+Description=ERP Implementation Delivery Lab
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/erp-implementation-lab
+ExecStart=/opt/erp-implementation-lab/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+Environment=ERP_DB_PATH=/opt/erp-implementation-lab/data/erp_demo.db
+
+[Install]
+WantedBy=multi-user.target

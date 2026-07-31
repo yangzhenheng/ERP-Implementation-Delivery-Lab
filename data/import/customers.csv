@@ -1,0 +1,3 @@
+customer_code,customer_name,contact,phone,address,status
+CUST-M001,Mock North Plant,Ms. Zhao,13810000001,Mock industrial park A,active
+CUST-M002,Mock South Assembly,Mr. Huang,13810000002,Mock industrial park B,active
