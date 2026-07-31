@@ -32,7 +32,7 @@ class ImportStats:
 
 
 def require_columns(row: dict, required: list[str], file_name: str, line_no: int) -> list[str]:
-    return [f"{file_name}:{line_no} missing {name}" for name in required if not str(row.get(name, "")).strip()]
+    return [f"{file_name}:{line_no} 缺少必填字段 {name}" for name in required if not str(row.get(name, "")).strip()]
 
 
 def read_csv(path: Path):
@@ -44,17 +44,17 @@ def import_csv_folder(folder: Path, db) -> dict:
     stats = ImportStats()
     folder = Path(folder)
     if not folder.exists():
-        return {"success": 0, "failed": 1, "skipped": 0, "errors": [f"folder not found: {folder}"]}
+        return {"success": 0, "failed": 1, "skipped": 0, "errors": [f"导入目录不存在: {folder}"]}
 
     try:
         import_customers(folder / "customers.csv", db, stats)
         import_products(folder / "products.csv", db, stats)
         import_inventory(folder / "inventory.csv", db, stats)
         import_orders(folder / "orders.csv", db, stats)
-        logging.info("CSV import finished: %s", stats.as_dict())
+        logging.info("CSV 导入完成: %s", stats.as_dict())
     except Exception as exc:
         db.rollback()
-        logging.exception("CSV import rollback: %s", exc)
+        logging.exception("CSV 导入失败，事务已回滚: %s", exc)
         raise
     return stats.as_dict()
 
@@ -62,14 +62,14 @@ def import_csv_folder(folder: Path, db) -> dict:
 def import_customers(path: Path, db, stats: ImportStats):
     if not path.exists():
         stats.skipped += 1
-        stats.errors.append(f"skipped missing file {path.name}")
+        stats.errors.append(f"跳过缺失文件 {path.name}")
         return
     seen = set()
     for line_no, row in enumerate(read_csv(path), start=2):
         errors = require_columns(row, ["customer_code", "customer_name"], path.name, line_no)
         code = row.get("customer_code", "").strip()
         if code in seen:
-            errors.append(f"{path.name}:{line_no} duplicate customer_code in file")
+            errors.append(f"{path.name}:{line_no} 文件内 customer_code 重复")
         seen.add(code)
         if db.query(Customer).filter_by(customer_code=code).first():
             stats.skipped += 1
@@ -85,14 +85,14 @@ def import_customers(path: Path, db, stats: ImportStats):
 def import_products(path: Path, db, stats: ImportStats):
     if not path.exists():
         stats.skipped += 1
-        stats.errors.append(f"skipped missing file {path.name}")
+        stats.errors.append(f"跳过缺失文件 {path.name}")
         return
     for line_no, row in enumerate(read_csv(path), start=2):
         errors = require_columns(row, ["product_code", "product_name", "standard_price"], path.name, line_no)
         try:
             price = Decimal(str(row.get("standard_price", "0")))
         except InvalidOperation:
-            errors.append(f"{path.name}:{line_no} invalid standard_price")
+            errors.append(f"{path.name}:{line_no} standard_price 格式无效")
             price = Decimal("0")
         code = row.get("product_code", "").strip()
         if db.query(Product).filter_by(product_code=code).first():
@@ -109,7 +109,7 @@ def import_products(path: Path, db, stats: ImportStats):
 def import_inventory(path: Path, db, stats: ImportStats):
     if not path.exists():
         stats.skipped += 1
-        stats.errors.append(f"skipped missing file {path.name}")
+        stats.errors.append(f"跳过缺失文件 {path.name}")
         return
     db.flush()
     for line_no, row in enumerate(read_csv(path), start=2):
@@ -117,7 +117,7 @@ def import_inventory(path: Path, db, stats: ImportStats):
         product = db.query(Product).filter_by(product_code=row.get("product_code", "").strip()).first()
         warehouse = db.query(Warehouse).filter_by(warehouse_code=row.get("warehouse_code", "").strip()).first()
         if not product:
-            errors.append(f"{path.name}:{line_no} product not found")
+            errors.append(f"{path.name}:{line_no} 产品编码不存在")
         if not warehouse:
             warehouse = Warehouse(warehouse_code=row.get("warehouse_code", "").strip(), warehouse_name=row.get("warehouse_name") or row.get("warehouse_code", "").strip())
             db.add(warehouse)
@@ -126,7 +126,7 @@ def import_inventory(path: Path, db, stats: ImportStats):
             quantity = int(row.get("quantity", "0"))
             safety_stock = int(row.get("safety_stock", "0"))
         except ValueError:
-            errors.append(f"{path.name}:{line_no} quantity/safety_stock must be integer")
+            errors.append(f"{path.name}:{line_no} quantity/safety_stock 必须是整数")
             quantity = 0
             safety_stock = 0
         if errors:
@@ -146,7 +146,7 @@ def import_inventory(path: Path, db, stats: ImportStats):
 def import_orders(path: Path, db, stats: ImportStats):
     if not path.exists():
         stats.skipped += 1
-        stats.errors.append(f"skipped missing file {path.name}")
+        stats.errors.append(f"跳过缺失文件 {path.name}")
         return
     db.flush()
     for line_no, row in enumerate(read_csv(path), start=2):
@@ -157,13 +157,13 @@ def import_orders(path: Path, db, stats: ImportStats):
         customer = db.query(Customer).filter_by(customer_code=row.get("customer_code", "").strip()).first()
         product = db.query(Product).filter_by(product_code=row.get("product_code", "").strip()).first()
         if not customer:
-            errors.append(f"{path.name}:{line_no} customer not found")
+            errors.append(f"{path.name}:{line_no} 客户编码不存在")
         if not product:
-            errors.append(f"{path.name}:{line_no} product not found")
+            errors.append(f"{path.name}:{line_no} 产品编码不存在")
         try:
             quantity = int(row.get("quantity", "0"))
         except ValueError:
-            errors.append(f"{path.name}:{line_no} quantity must be integer")
+            errors.append(f"{path.name}:{line_no} quantity 必须是整数")
             quantity = 0
         if errors:
             stats.failed += 1
@@ -178,7 +178,7 @@ def import_orders(path: Path, db, stats: ImportStats):
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Import mock CSV data into the ERP implementation lab database.")
+    parser = argparse.ArgumentParser(description="将模拟 CSV 数据导入 ERP 实施实验室数据库。")
     parser.add_argument("--folder", default=str(BASE_DIR / "data" / "import"))
     args = parser.parse_args()
     init_db()

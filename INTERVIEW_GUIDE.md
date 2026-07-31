@@ -1,120 +1,98 @@
-# Interview Guide
+# 国内面试讲解指南
 
-## 30 Seconds
+## 30 秒项目介绍
 
-This is my independently built Manufacturing ERP Implementation Delivery Lab. It is not a real customer project. I use it to demonstrate the complete implementation chain: requirements, environment check, deployment, MySQL, data migration, API testing, troubleshooting, training and go-live acceptance.
+这是我独立搭建的 **制造业 ERP 实施交付实验室**。它不是商业客户生产项目，而是一个可运行的实施演示项目，用来展示 ERP 实施工程师从需求调研、环境检查、部署、数据迁移、SQL 核对、接口联调、日志排查、用户培训到上线验收的完整工作流程。
 
-## 60 Seconds
+## 60 秒项目介绍
 
-The system is a FastAPI ERP demo with customers, products, inventory, sales orders, implementation tasks and issue tracking. In dev mode it runs on SQLite for quick interview demonstration. In demo mode it can run with Docker Compose, MySQL 8, Redis and Nginx. The key flow is sales order creation, inventory validation, inventory deduction and transaction recording. If stock is insufficient, the system creates an issue. I also prepared SQL scripts, CSV import, backup/restore, Linux checks and troubleshooting cases.
+项目模拟一家制造企业从 Excel 和人工登记逐步切换到 ERP 管理的场景。系统包含客户、产品、仓库、库存、销售订单、库存流水、实施任务、问题工单和操作日志。技术上使用 FastAPI、SQLAlchemy、SQLite/MySQL、Redis、Nginx、Docker Compose 和 pytest。演示重点是订单库存校验闭环：库存足够时确认订单并扣减库存；库存不足时生成问题工单，体现实施现场常见的异常跟踪和业务确认过程。
 
-## 3 Minutes
+## 3 分钟项目介绍
 
-I built this project to practice real ERP implementation delivery work without pretending to have a commercial customer case. The business background is a manufacturing company moving from Excel/manual registration to ERP-style master data and order inventory control. The code demonstrates API, database and data validation. The deployment files demonstrate how I would check Linux, start services, configure Nginx, use Redis as optional middleware, verify MySQL and prepare backup/restore. The docs demonstrate implementation planning, migration, training, go-live and acceptance. The current local automated test result is 9 passed.
+我做这个项目的目的不是包装真实客户经验，而是系统性补齐实施工程师岗位需要的基础能力。项目中有可运行的后端接口、驾驶舱、数据模型、CSV 导入脚本、MySQL 建表和查询脚本、Linux 环境检查、Nginx 配置、Docker Compose 编排、备份恢复脚本、故障演练案例、培训话术和上线验收清单。
 
-## Key Honest Answer
+本地 FastAPI/SQLite 模式已经通过自动化测试和 HTTP 验证。Docker/MySQL/Redis/Nginx 配置已完成，但容器运行依赖本机 Docker 环境，因此报告中对未实际运行的部分明确标记为 `NOT VERIFIED`。面试时我会如实说明项目边界，重点展示我对实施流程、SQL、部署、数据迁移、排障和交付文档的理解。
 
-Q: Do you have real ERP implementation engineer work experience?
+## 必须诚实回答的问题
 
-A: I do not claim formal commercial ERP implementation engineer experience. This is an independently built implementation lab. I built and ran the MySQL/deployment/data migration/API/logging/troubleshooting chain to show that I understand the work process and can operate the basic tools honestly.
+**问：你有没有正式商业 ERP 实施工程师工作经验？**
 
-## Interview Questions And Practical Answers
+答：我不会把这个项目说成真实客户项目。它是我独立搭建的实施实验室，目的是把实施工程师的完整工作流程跑通，包括需求、部署、数据库、数据迁移、接口、日志、排障、培训和验收。项目中的业务数据是模拟数据，但技术链路和测试验证是我实际完成的。
 
-1. Why did you build this project?  
-To practice the whole implementation delivery workflow instead of only writing code.
+## 常见面试问答
 
-2. What does an ERP implementation engineer do?  
-Requirements, installation, configuration, data migration, testing, training, troubleshooting, go-live and acceptance.
+1. **为什么做这个项目？**
+   因为实施岗位不只是写代码，还需要理解业务流程、环境部署、数据迁移、接口联调、故障排查和用户沟通。我用这个项目把这些能力串起来。
 
-3. How do you do requirements research?  
-Interview roles, record current process, confirm master data, confirm reports, identify gaps and get written confirmation.
+2. **ERP 实施工程师主要做什么？**
+   需求调研、方案确认、环境检查、安装部署、系统配置、数据迁移、联调测试、用户培训、上线切换、问题跟踪和验收交付。
 
-4. How do you check Linux CPU?  
-Use `top`, `lscpu` or `nproc`.
+3. **需求调研怎么做？**
+   先确认组织角色和业务流程，再梳理主数据、单据、报表、权限、接口和历史数据，最后形成确认记录，避免后续范围不清。
 
-5. How do you check memory?  
-Use `free -h` and `top`.
+4. **Linux 怎么看 CPU？**
+   常用 `top`、`lscpu`、`nproc`。
 
-6. How do you check disk?  
-Use `df -h` and check log/data directories.
+5. **Linux 怎么看内存？**
+   常用 `free -h`、`top`。
 
-7. How do you check processes?  
-Use `ps aux | grep <name>` or `systemctl status`.
+6. **Linux 怎么看磁盘？**
+   常用 `df -h`，重点看应用目录、日志目录和数据库数据目录。
 
-8. How do you check ports?  
-Use `ss -lntp`.
+7. **怎么检查端口？**
+   用 `ss -lntp` 查看 80、8000、3306、6379 等端口是否监听。
 
-9. Nginx 502怎么办?  
-Check Nginx config, app health, port, Docker network and logs.
+8. **Nginx 502 怎么排查？**
+   先看 Nginx 配置和日志，再看 FastAPI 是否启动、端口是否监听、容器网络是否连通、上游地址是否正确。
 
-10. Database cannot connect怎么办?  
-Check host, port, credentials, database name, grants and service health.
+9. **数据库连不上怎么办？**
+   检查主机、端口、用户名、密码、库名、授权、服务状态和网络连通性。
 
-11. What is SQL JOIN?  
-It combines related rows, for example orders with customers.
+10. **SQL JOIN 是什么？**
+    用关联字段把多张表的数据组合起来，例如订单表关联客户表、订单明细关联产品表。
 
-12. MySQL backup怎么做?  
-Use `mysqldump --single-transaction`.
+11. **MySQL 怎么备份？**
+    用 `mysqldump --single-transaction` 做 InnoDB 一致性备份。
 
-13. MySQL restore怎么做?  
-Use `mysql database < backup.sql`, then verify counts and APIs.
+12. **MySQL 怎么恢复？**
+    用 `mysql 数据库名 < backup.sql` 恢复，然后用数量核对和接口验证确认恢复结果。
 
-14. Data migration怎么做?  
-Mapping, cleaning, test import, reconciliation, formal import and business confirmation.
+13. **数据迁移怎么做？**
+    字段映射、数据清洗、测试导入、错误行修正、数量核对、业务抽查、正式导入和用户确认。
 
-15. Duplicate data怎么办?  
-Use unique business keys, query duplicates, clean source, then reimport.
+14. **重复数据怎么办？**
+    先确定唯一业务键，如客户编码、产品编码；用 SQL 查重，清洗源数据，再重新导入。
 
-16. CSV乱码怎么办?  
-Confirm encoding, save UTF-8, test import, validate sample rows.
+15. **CSV 乱码怎么办？**
+    确认编码，统一保存为 UTF-8，导入前抽样检查中文字段。
 
-17. Go-live前准备什么?  
-Environment, backup, config, data import, tests, user confirmation and rollback plan.
+16. **上线前准备什么？**
+    环境确认、配置确认、数据库备份、最终数据迁移、接口验证、业务验证、用户确认和回退方案。
 
-18. Customer does not cooperate怎么办?  
-Clarify risks, split confirmations, escalate politely with evidence.
+17. **客户不配合怎么办？**
+    先把影响说明清楚，拆分确认事项，留下书面记录，必要时向项目负责人同步风险。
 
-19. Change request怎么办?  
-Record scope, impact, priority, approval and schedule.
+18. **客户提出变更怎么办？**
+    记录变更内容，评估影响范围、工期和风险，确认优先级和审批后再执行。
 
-20. Bug怎么处理?  
-Reproduce, check logs, locate root cause, fix, test and record.
+19. **Bug 怎么处理？**
+    复现问题、查看日志、定位根因、修复验证、记录处理过程。
 
-21. Major go-live issue怎么办?  
-Stabilize service, assess impact, rollback if necessary, communicate timeline and document root cause.
+20. **上线后出现严重问题怎么办？**
+    先恢复业务可用性，评估影响范围，必要时回退；同时同步进展，事后补根因分析和改进措施。
 
-22. How to write a manual?  
-Role-based steps, screenshots or API examples, common issues and contacts.
+21. **Redis 是什么？本项目为什么用？**
+    Redis 是内存型中间件，常用于缓存、状态、队列等。本项目只用于状态检查和降级演示，Redis 不可用时核心业务接口仍尽量可用。
 
-23. How to do training?  
-Use real workflow demo, let users operate, collect questions.
+22. **HTTP 500 是什么？**
+    服务端内部错误，需要结合接口参数、应用日志、traceback、数据库状态定位。
 
-24. How to do acceptance?  
-Use checklist, verify function/data/report/interface and get confirmation.
+23. **401 和 403 区别？**
+    401 是未认证，403 是已认证但没有权限。
 
-25. Why accept travel?  
-Implementation work often needs on-site communication, environment check and user training.
+24. **怎么看日志？**
+    根据用户报错时间、接口路径、request_id、模块、错误信息和 traceback 追踪一次请求。
 
-26. Why transfer to ERP implementation?  
-It combines business process, communication, SQL, deployment and troubleshooting.
-
-27. How does manufacturing experience help?  
-It helps understand products, inventory, orders, warehouses and process control.
-
-28. What is Redis?  
-An in-memory middleware often used for cache/status/session. In this lab it is optional.
-
-29. What is middleware?  
-A service between application and infrastructure that provides common capability like cache or queue.
-
-30. What is REST API?  
-HTTP endpoints using methods like GET/POST/PUT to operate resources.
-
-31. What is HTTP 500?  
-Server-side error; check application logs and traceback.
-
-32. 401和403区别?  
-401 means not authenticated; 403 means authenticated but no permission.
-
-33. How do you read logs?  
-Use time, request_id, module, error message and traceback to trace one operation.
+25. **为什么想做 ERP / 软件实施？**
+    这个岗位把业务理解、沟通、SQL、部署、接口、排障和交付结合在一起，适合从实际问题出发推动系统落地。

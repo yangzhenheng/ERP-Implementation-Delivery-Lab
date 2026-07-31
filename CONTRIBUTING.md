@@ -1,25 +1,25 @@
-# Contributing
+# 贡献说明
 
-This repository is primarily an interview demonstration lab, but it follows a small professional workflow so changes remain reviewable.
+本仓库主要用于个人面试展示，但仍按小型专业项目方式维护，保证每次改动可读、可测、可回溯。
 
-## Local Setup
+## 本地检查
 
 ```bash
 python -m pip install -r requirements.txt
 pytest -q
 ```
 
-## Development Rules
+## 开发规则
 
-- Keep demo data clearly marked as mock data.
-- Do not commit `.env`, database files, dumps, runtime logs or personal files.
-- Keep ERP behavior aligned with the documented implementation workflow.
-- Update tests when changing API behavior.
-- Update `EVIDENCE.md` and `FINAL_ACCEPTANCE_REPORT.md` when verification results change.
+- 演示数据必须明确标记为模拟数据。
+- 不提交 `.env`、数据库文件、备份文件、运行日志或个人文件。
+- ERP 行为要与实施流程文档保持一致。
+- 修改 API 行为时同步更新测试。
+- 验证结果变化时同步更新 `EVIDENCE.md` 和 `FINAL_ACCEPTANCE_REPORT.md`。
 
-## Commit Style
+## 提交信息
 
-Use concise conventional-style messages:
+使用简洁的 conventional-style 信息：
 
 ```text
 feat: add inventory validation workflow
@@ -27,3 +27,5 @@ fix: handle redis degradation quickly
 docs: update go-live checklist
 test: cover data import endpoint
 ```
+
+面试讲解重点：即使是个人项目，也要体现版本管理、测试验证、文档同步和边界意识。

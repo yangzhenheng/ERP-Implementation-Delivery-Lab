@@ -1,37 +1,44 @@
-# Data Migration Guide
+# 数据迁移指南
 
-All files in `data/import/` are DEMO DATA / MOCK DATA. They are not real customer data.
+`data/import/` 目录中的 CSV 文件均为模拟数据，不是真实客户资料。
 
-## Workflow
+## 迁移流程
 
-1. Collect source Excel files from business users.
-2. Confirm field mapping against ERP tables.
-3. Clean required fields, duplicated codes, encoding and data types.
-4. Save CSV files as UTF-8.
-5. Run a test import in the demo environment.
-6. Compare source counts and target counts.
-7. Ask business users to confirm sample records.
-8. Run formal import after backup.
-9. Record import result and open issues for failed rows.
+1. 向业务方收集客户、产品、库存、订单等 Excel 数据。
+2. 确认字段映射关系。
+3. 清洗必填字段、重复编码、日期格式、数值类型和中文编码。
+4. 将文件保存为 UTF-8 CSV。
+5. 在测试环境执行试导入。
+6. 核对源数据数量与目标库数量。
+7. 抽查关键客户、产品、库存和订单。
+8. 业务方确认后执行正式导入。
+9. 记录导入结果和失败行原因。
 
-## Field Mapping
+## 字段映射
 
-| Source CSV | Target Table | Key Fields |
+| CSV 文件 | 目标表 | 关键字段 |
 |---|---|---|
-| customers.csv | customers | customer_code, customer_name |
-| products.csv | products | product_code, product_name, standard_price |
-| inventory.csv | inventory | product_code, warehouse_code, quantity |
-| orders.csv | sales_orders, sales_order_items | order_no, customer_code, product_code, quantity |
+| `customers.csv` | `customers` | `customer_code`, `customer_name` |
+| `products.csv` | `products` | `product_code`, `product_name`, `standard_price` |
+| `inventory.csv` | `inventory` | `product_code`, `warehouse_code`, `quantity` |
+| `orders.csv` | `sales_orders`, `sales_order_items` | `order_no`, `customer_code`, `product_code`, `quantity` |
 
-## Run
+## 执行命令
 
 ```bash
 python scripts/import_data.py --folder data/import
 ```
 
-The script checks required fields, duplicate codes, integer quantities, decimal prices and cross-file references. Results are written to stdout and `logs/import.log`.
+脚本会检查：
 
-## Reconciliation SQL
+- 必填字段
+- 重复编码
+- 数值类型
+- 外键引用
+- 错误行原因
+- 成功、失败、跳过数量
+
+## 核对 SQL
 
 ```sql
 SELECT COUNT(*) FROM customers;
@@ -39,3 +46,7 @@ SELECT COUNT(*) FROM products;
 SELECT COUNT(*) FROM sales_orders;
 SELECT COUNT(*) FROM inventory;
 ```
+
+## 面试讲解重点
+
+数据迁移不是简单导入文件，而是要先确认字段映射、清洗规则和业务口径，再做试导入、数量核对、抽样检查和业务确认。正式导入前必须备份数据库。

@@ -1,3 +1,3 @@
 product_code,product_name,category,unit,standard_price,status
-SKU-M900,Mock Motor Controller,device,pcs,1680.00,active
-SKU-M901,Mock Sensor Cable,material,pcs,18.50,active
+SKU-M900,伺服电机控制器,设备,台,1680.00,active
+SKU-M901,传感器连接线,物料,根,18.50,active

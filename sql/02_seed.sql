@@ -1,19 +1,19 @@
 USE erp_demo;
 
 INSERT INTO customers(customer_code, customer_name, contact, phone, address, status) VALUES
-('CUST-001','Demo Precision Manufacturing','Ms. Chen','13800000001','Mock address A','active'),
-('CUST-002','Demo Assembly Factory','Mr. Li','13800000002','Mock address B','active'),
-('CUST-003','Demo Components Trading','Ms. Wang','13800000003','Mock address C','active');
+('CUST-001','华南精密制造有限公司（模拟）','陈经理','13800000001','广东省广州市模拟工业园 A 区','active'),
+('CUST-002','苏州装配工厂（模拟）','李主管','13800000002','江苏省苏州市模拟产业园 B 栋','active'),
+('CUST-003','成都零部件贸易有限公司（模拟）','王经理','13800000003','四川省成都市模拟供应链园区','active');
 
 INSERT INTO products(product_code, product_name, category, unit, standard_price, status) VALUES
-('SKU-A100','Industrial Scanner','device','pcs',1280.00,'active'),
-('SKU-B220','Label Printer','device','pcs',860.00,'active'),
-('SKU-C310','Handheld PDA','device','pcs',2360.00,'active'),
-('SKU-D450','Barcode Label','consumable','roll',35.00,'active');
+('SKU-A100','工业扫码枪','设备','台',1280.00,'active'),
+('SKU-B220','标签打印机','设备','台',860.00,'active'),
+('SKU-C310','PDA 手持终端','设备','台',2360.00,'active'),
+('SKU-D450','条码标签纸','耗材','卷',35.00,'active');
 
 INSERT INTO warehouses(warehouse_code, warehouse_name) VALUES
-('WH-MAIN','Main Warehouse'),
-('WH-QC','Quality Hold Warehouse');
+('WH-MAIN','主仓库'),
+('WH-QC','质检暂存仓');
 
 INSERT INTO inventory(product_id, warehouse_id, quantity, safety_stock) VALUES
 (1,1,32,10),
@@ -38,15 +38,15 @@ INSERT INTO inventory_transactions(product_id, warehouse_id, transaction_type, q
 (2,1,'adjustment',6,'INIT');
 
 INSERT INTO implementation_tasks(project_name, task_type, owner, status, priority, planned_date, completed_date) VALUES
-('Manufacturing ERP Implementation Delivery Lab','requirements','implementation_engineer','completed','P1',CURDATE(),CURDATE()),
-('Manufacturing ERP Implementation Delivery Lab','installation','implementation_engineer','completed','P1',CURDATE(),CURDATE()),
-('Manufacturing ERP Implementation Delivery Lab','configuration','implementation_engineer','completed','P2',CURDATE(),CURDATE()),
-('Manufacturing ERP Implementation Delivery Lab','data_migration','implementation_engineer','in_progress','P1',CURDATE(),NULL),
-('Manufacturing ERP Implementation Delivery Lab','testing','implementation_engineer','in_progress','P1',CURDATE(),NULL),
-('Manufacturing ERP Implementation Delivery Lab','training','implementation_engineer','not_started','P2',CURDATE(),NULL),
-('Manufacturing ERP Implementation Delivery Lab','go_live','implementation_engineer','not_started','P1',CURDATE(),NULL),
-('Manufacturing ERP Implementation Delivery Lab','acceptance','implementation_engineer','not_started','P1',CURDATE(),NULL);
+('制造业 ERP 实施交付实验室','requirements','implementation_engineer','completed','P1',CURDATE(),CURDATE()),
+('制造业 ERP 实施交付实验室','installation','implementation_engineer','completed','P1',CURDATE(),CURDATE()),
+('制造业 ERP 实施交付实验室','configuration','implementation_engineer','completed','P2',CURDATE(),CURDATE()),
+('制造业 ERP 实施交付实验室','data_migration','implementation_engineer','in_progress','P1',CURDATE(),NULL),
+('制造业 ERP 实施交付实验室','testing','implementation_engineer','in_progress','P1',CURDATE(),NULL),
+('制造业 ERP 实施交付实验室','training','implementation_engineer','not_started','P2',CURDATE(),NULL),
+('制造业 ERP 实施交付实验室','go_live','implementation_engineer','not_started','P1',CURDATE(),NULL),
+('制造业 ERP 实施交付实验室','acceptance','implementation_engineer','not_started','P1',CURDATE(),NULL);
 
 INSERT INTO issues(title, module, severity, status, description, owner) VALUES
-('Low stock blocks sales order confirmation','inventory','P2','open','Mock issue generated from demo stock check.','implementation_engineer'),
-('CSV template date format mismatch','data_import','P3','open','Training example for data migration validation.','implementation_engineer');
+('销售订单库存不足，暂不能确认','库存管理','P2','open','由演示库存校验流程生成的模拟问题。','implementation_engineer'),
+('CSV 导入模板日期格式不一致','数据迁移','P3','open','用于演示数据迁移校验和错误行记录。','implementation_engineer');

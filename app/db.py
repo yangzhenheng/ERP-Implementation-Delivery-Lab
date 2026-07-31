@@ -219,19 +219,19 @@ def init_db() -> None:
 
 def seed_demo_data(db: Session) -> None:
     customers = [
-        Customer(customer_code="CUST-001", customer_name="Demo Precision Manufacturing", contact="Ms. Chen", phone="13800000001", address="Mock address A"),
-        Customer(customer_code="CUST-002", customer_name="Demo Assembly Factory", contact="Mr. Li", phone="13800000002", address="Mock address B"),
-        Customer(customer_code="CUST-003", customer_name="Demo Components Trading", contact="Ms. Wang", phone="13800000003", address="Mock address C"),
+        Customer(customer_code="CUST-001", customer_name="华南精密制造有限公司（模拟）", contact="陈经理", phone="13800000001", address="广东省广州市模拟工业园 A 区", status="active"),
+        Customer(customer_code="CUST-002", customer_name="苏州装配工厂（模拟）", contact="李主管", phone="13800000002", address="江苏省苏州市模拟产业园 B 栋", status="active"),
+        Customer(customer_code="CUST-003", customer_name="成都零部件贸易有限公司（模拟）", contact="王经理", phone="13800000003", address="四川省成都市模拟供应链园区", status="active"),
     ]
     products = [
-        Product(product_code="SKU-A100", product_name="Industrial Scanner", category="device", unit="pcs", standard_price=Decimal("1280.00")),
-        Product(product_code="SKU-B220", product_name="Label Printer", category="device", unit="pcs", standard_price=Decimal("860.00")),
-        Product(product_code="SKU-C310", product_name="Handheld PDA", category="device", unit="pcs", standard_price=Decimal("2360.00")),
-        Product(product_code="SKU-D450", product_name="Barcode Label", category="consumable", unit="roll", standard_price=Decimal("35.00")),
+        Product(product_code="SKU-A100", product_name="工业扫码枪", category="设备", unit="台", standard_price=Decimal("1280.00")),
+        Product(product_code="SKU-B220", product_name="标签打印机", category="设备", unit="台", standard_price=Decimal("860.00")),
+        Product(product_code="SKU-C310", product_name="PDA 手持终端", category="设备", unit="台", standard_price=Decimal("2360.00")),
+        Product(product_code="SKU-D450", product_name="条码标签纸", category="耗材", unit="卷", standard_price=Decimal("35.00")),
     ]
     warehouses = [
-        Warehouse(warehouse_code="WH-MAIN", warehouse_name="Main Warehouse"),
-        Warehouse(warehouse_code="WH-QC", warehouse_name="Quality Hold Warehouse"),
+        Warehouse(warehouse_code="WH-MAIN", warehouse_name="主仓库"),
+        Warehouse(warehouse_code="WH-QC", warehouse_name="质检暂存仓"),
     ]
     db.add_all(customers + products + warehouses)
     db.flush()
@@ -273,7 +273,7 @@ def seed_demo_data(db: Session) -> None:
     for i, task_type in enumerate(task_types):
         db.add(
             ImplementationTask(
-                project_name="Manufacturing ERP Implementation Delivery Lab",
+                project_name="制造业 ERP 实施交付实验室",
                 task_type=task_type,
                 owner="implementation_engineer",
                 status=statuses[i],
@@ -285,8 +285,8 @@ def seed_demo_data(db: Session) -> None:
 
     db.add_all(
         [
-            Issue(title="Low stock blocks sales order confirmation", module="inventory", severity="P2", status="open", description="Mock issue generated from demo stock check.", owner="implementation_engineer"),
-            Issue(title="CSV template date format mismatch", module="data_import", severity="P3", status="open", description="Training example for data migration validation.", owner="implementation_engineer"),
-            Issue(title="Nginx reverse proxy path verified", module="deployment", severity="P2", status="closed", root_cause="Nginx config needed upstream path check.", solution="Updated reverse proxy location and health check.", owner="implementation_engineer", resolved_at=now_utc()),
+            Issue(title="销售订单库存不足，暂不能确认", module="库存管理", severity="P2", status="open", description="由演示库存校验流程生成的模拟问题。", owner="implementation_engineer"),
+            Issue(title="CSV 导入模板日期格式不一致", module="数据迁移", severity="P3", status="open", description="用于演示数据迁移校验和错误行记录。", owner="implementation_engineer"),
+            Issue(title="Nginx 反向代理路径已验证", module="部署联调", severity="P2", status="closed", root_cause="Nginx 上游路径需要确认。", solution="更新反向代理配置并通过健康检查验证。", owner="implementation_engineer", resolved_at=now_utc()),
         ]
     )

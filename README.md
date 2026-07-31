@@ -1,86 +1,91 @@
-# Manufacturing ERP Implementation Delivery Lab
+# 制造业 ERP 实施交付实验室
 
 [![CI](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/workflows/ci.yml/badge.svg)](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/workflows/ci.yml)
 
-A hands-on ERP implementation laboratory covering deployment, MySQL, Linux, data migration, API integration, troubleshooting, training and go-live delivery.
+这是一个面向国内 ERP / 软件实施工程师岗位面试的个人实战项目，用于演示从需求调研、环境检查、安装部署、数据迁移、SQL 核对、接口联调、日志排查、客户培训到上线验收的完整实施交付流程。
 
-This is an independently built interview demonstration project / implementation lab. It is not a commercial customer production system. ERP business data is mock data.
+项目英文仓库名保留为 `ERP-Implementation-Delivery-Lab`，中文正式名称为 **制造业 ERP 实施交付实验室**。
 
-## Project Status
+## 项目定位
 
-- Local FastAPI/SQLite mode: verified.
-- Automated tests: verified.
-- CSV import workflow: verified.
-- Docker Compose configuration: syntax checked.
-- Docker/MySQL/Redis/Nginx runtime: prepared, requires Docker Desktop or Docker Engine.
+- 这是个人独立搭建的实施演示项目，不是商业客户生产项目。
+- 项目中的 ERP 业务数据均为模拟数据，不代表真实企业数据。
+- 项目重点不是炫酷页面，而是证明实施工程师需要的 SQL、Linux、部署、数据迁移、接口验证、日志排查、问题跟踪和交付文档能力。
+- 面试时可以诚实说明：没有把它包装成真实客户项目，而是用可运行系统证明自己理解实施工作闭环。
 
-## Architecture
+## 当前状态
 
-```mermaid
-flowchart LR
-    User[User Browser] --> Nginx[Nginx Reverse Proxy]
-    Nginx --> API[FastAPI Application]
-    API --> MySQL[(MySQL 8 Demo Profile)]
-    API --> SQLite[(SQLite Dev Profile)]
-    API --> Redis[(Redis Optional Cache/Status)]
-```
+- FastAPI + SQLite 本地演示模式：已验证。
+- 自动化测试：已验证，最新结果 `9 passed`。
+- CSV 数据导入：已验证并纳入 API 测试。
+- Docker Compose 配置：已完成并通过 YAML 结构检查。
+- MySQL / Redis / Nginx 容器运行：配置已完成，受当前电脑 Docker 环境限制，需安装 Docker Desktop 后执行全栈验收脚本。
 
-## Implementation Flow
+## 系统架构
 
 ```mermaid
 flowchart LR
-    A[Requirements] --> B[Environment]
-    B --> C[Installation]
-    C --> D[Configuration]
-    D --> E[Migration]
-    E --> F[Testing]
-    F --> G[Training]
-    G --> H[Go-Live]
-    H --> I[Acceptance]
+    User[用户浏览器] --> Nginx[Nginx 反向代理]
+    Nginx --> API[FastAPI 应用服务]
+    API --> MySQL[(MySQL 8 演示环境)]
+    API --> SQLite[(SQLite 本地开发环境)]
+    API --> Redis[(Redis 可降级中间件)]
 ```
 
-## Tech Stack
+## 实施流程
 
-FastAPI, Python, SQLAlchemy, Pydantic, SQLite, MySQL 8, Redis, Nginx, Docker Compose, pytest and curl.
+```mermaid
+flowchart LR
+    A[需求调研] --> B[环境检查]
+    B --> C[安装部署]
+    C --> D[系统配置]
+    D --> E[数据迁移]
+    E --> F[联调测试]
+    F --> G[用户培训]
+    G --> H[上线切换]
+    H --> I[验收交付]
+```
 
-## Quality Gates
+## 技术栈
 
-- `pytest -q`
-- `python -m compileall app scripts tests`
-- `docker compose config --quiet`
-- `python scripts/verify_deployment.py --base-url http://127.0.0.1:8000`
+- 后端：FastAPI、Pydantic、SQLAlchemy
+- 数据库：SQLite 本地模式、MySQL 8 演示模式
+- 中间件：Redis 可选状态检查 / 缓存降级示例
+- 部署：Docker Compose、Nginx、Linux Shell、systemd 示例
+- 测试：pytest、FastAPI TestClient、HTTP 验证脚本
+- 文档：实施计划、部署手册、迁移方案、故障手册、培训话术、验收报告
 
-## Business Modules
+## 业务模块
 
-- Customers
-- Products
-- Warehouses
-- Inventory and inventory transactions
-- Sales orders and order items
-- Implementation tasks
-- Issues
-- Operation logs with request_id
+- 客户管理
+- 产品管理
+- 仓库管理
+- 库存管理与库存流水
+- 销售订单与订单明细
+- 实施任务
+- 问题工单
+- 操作日志与 request_id 追踪
 
-## Core Business Flow
+## 核心业务闭环
 
-Customer -> sales order -> stock validation -> confirm order -> inventory deduction -> transaction record -> completion.
+客户 -> 销售订单 -> 库存校验 -> 库存足够 -> 订单确认 -> 库存扣减 -> 库存流水 -> 完成。
 
-If stock is not enough, the order becomes `inventory_failed` and the system creates an open issue for follow-up.
+库存不足时，系统不会假装成功，而是将订单标记为 `inventory_failed`，并生成问题工单，体现实施现场常见的业务异常处理思路。
 
-## Quick Start
+## 快速启动
 
 ```bash
 python -m pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Open:
+访问地址：
 
-- Dashboard: `http://127.0.0.1:8000/`
-- Swagger: `http://127.0.0.1:8000/docs`
-- Health: `http://127.0.0.1:8000/health`
+- 系统首页：`http://127.0.0.1:8000/`
+- Swagger 接口文档：`http://127.0.0.1:8000/docs`
+- 健康检查：`http://127.0.0.1:8000/health`
 
-## Docker Start
+## Docker 启动
 
 ```bash
 cp .env.example .env
@@ -90,100 +95,107 @@ docker compose logs app
 curl http://localhost/health
 ```
 
-Services: app, mysql, redis and nginx. MySQL data is persisted in a Docker volume.
+服务包括：`app`、`mysql`、`redis`、`nginx`。MySQL 数据通过 Docker volume 持久化。
 
-On Windows, if Docker Desktop is not installed, run PowerShell as Administrator:
+Windows 如果尚未安装 Docker Desktop，请使用管理员 PowerShell：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/install_docker_windows.ps1
 powershell -ExecutionPolicy Bypass -File scripts/verify_full_stack.ps1
 ```
 
-## API
+## API 规范
 
-All main APIs return:
+主要接口统一返回：
 
 ```json
 {"code":0,"message":"success","data":{}}
 ```
 
-Key endpoints:
+核心接口：
 
 - `GET /api/dashboard`
-- `GET /api/customers`, `POST /api/customers`
+- `GET /api/customers`
+- `POST /api/customers`
 - `GET /api/products`
 - `GET /api/inventory`
-- `GET /api/orders`, `POST /api/orders`, `GET /api/orders/{id}`
-- `GET /api/issues`, `POST /api/issues`, `PUT /api/issues/{id}`
+- `GET /api/orders`
+- `POST /api/orders`
+- `GET /api/orders/{id}`
+- `GET /api/issues`
+- `POST /api/issues`
+- `PUT /api/issues/{id}`
 - `GET /api/implementation/tasks`
 - `POST /api/data/import`
 - `GET /api/system/status`
 
-## SQL Capability
+## SQL 能力展示
 
-The `sql/` directory contains MySQL schema, seed data, 20 interview SQL queries, indexes, views, backup/restore and troubleshooting notes.
+`sql/` 目录包含：
 
-## Data Migration
+- MySQL 8 建表脚本
+- 初始化数据
+- 20 条实施工程师面试 SQL
+- 索引示例
+- 视图示例
+- MySQL 备份恢复说明
+- MySQL 常见故障排查说明
 
-Mock CSV files are in `data/import/`.
+覆盖 `SELECT`、`WHERE`、`ORDER BY`、`GROUP BY`、`HAVING`、`JOIN`、聚合函数、`CASE WHEN`、子查询、日期查询、NULL 处理、`INSERT`、`UPDATE`、`DELETE`、视图和索引优化。
+
+## 数据迁移
+
+模拟 CSV 数据位于 `data/import/`。
 
 ```bash
 python scripts/import_data.py --folder data/import
 ```
 
-The script checks required fields, duplicates, encoding assumptions, data types and foreign references. Results are written to `logs/import.log`.
+导入脚本会检查必填字段、重复编码、数据类型、关联字段和错误行，并将结果写入 `logs/import.log`。
 
-## Linux Capability
-
-Linux scripts are under `deploy/linux/`:
-
-- `environment_check.sh`
-- `install.sh`
-- `start.sh`
-- `stop.sh`
-- `restart.sh`
-- `health_check.sh`
-- `backup.sh`
-- `restore.sh`
-
-## Testing
+## 质量门禁
 
 ```bash
 pytest -q
+python -m compileall app scripts tests
+python scripts/verify_deployment.py --base-url http://127.0.0.1:8000
 ```
 
-Latest local result: `9 passed` on 2026-08-01.
+Docker 环境可用时：
 
-## Repository Structure
+```bash
+docker compose config --quiet
+powershell -ExecutionPolicy Bypass -File scripts/verify_full_stack.ps1
+```
+
+## 目录结构
 
 ```text
-app/                  FastAPI application, SQLAlchemy models and dashboard UI
-data/import/          Mock CSV files for migration demonstration
-deploy/               Nginx, systemd and Linux deployment scripts
-docs/                 Implementation, migration, go-live and troubleshooting docs
-scripts/              Import, verification, Docker and MySQL helper scripts
-sql/                  MySQL schema, seed data, interview queries, indexes and views
-tests/                pytest API and business-flow tests
-troubleshooting/      Recoverable local demo incident cases
+app/                  FastAPI 应用、数据模型、前端驾驶舱
+data/import/          数据迁移模拟 CSV
+deploy/               Nginx、systemd、Linux 部署脚本
+docs/                 实施、迁移、上线、排障和培训文档
+scripts/              导入、验证、Docker、MySQL 辅助脚本
+sql/                  建表、初始化、查询、索引、视图、备份恢复
+tests/                pytest 自动化测试
+troubleshooting/      可恢复的本地故障演练案例
 ```
 
-## Interview Boundary
+## 面试讲解边界
 
-Correct statement: I do not claim this is a real customer production ERP project. It is an implementation lab I built independently to practice ERP delivery workflow, SQL, deployment, migration, API verification, logging, troubleshooting, training and go-live acceptance.
+推荐表述：
 
-## Important Documents
+> 这个项目不是我参与过的真实客户生产系统，而是我独立搭建的 ERP 实施交付实验室。项目中的数据是模拟数据，但 FastAPI、SQLAlchemy、SQLite、MySQL 脚本、数据导入、接口测试、日志排查、Docker/Nginx 配置和实施文档都是我实际搭建和验证的内容。它用于证明我理解实施工程师从需求到上线验收的完整工作流程。
 
-- `docs/CURRENT_STATE.md`
-- `docs/DATA_MIGRATION_GUIDE.md`
-- `docs/LINUX_DEPLOYMENT.md`
-- `docs/TROUBLESHOOTING_PLAYBOOK.md`
-- `docs/BACKUP_RESTORE.md`
-- `docs/GO_LIVE_CHECKLIST.md`
-- `docs/DOCKER_FULL_STACK_VERIFICATION.md`
-- `CHANGELOG.md`
-- `CONTRIBUTING.md`
-- `SECURITY.md`
+## 重点文档
+
 - `INTERVIEW_GUIDE.md`
 - `DEMO_SCRIPT.md`
 - `EVIDENCE.md`
 - `FINAL_ACCEPTANCE_REPORT.md`
+- `docs/CURRENT_STATE.md`
+- `docs/DATA_MIGRATION_GUIDE.md`
+- `docs/LINUX_DEPLOYMENT.md`
+- `docs/GO_LIVE_CHECKLIST.md`
+- `docs/TROUBLESHOOTING_PLAYBOOK.md`
+- `docs/DOCKER_FULL_STACK_VERIFICATION.md`

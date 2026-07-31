@@ -1,16 +1,16 @@
 # CASE02 Nginx 502
 
-Safety: local demo only.
+安全边界：仅用于本地演示。
 
-## Symptom
+## 现象
 
-Browser can open `http://localhost`, but Nginx returns `502 Bad Gateway`.
+浏览器能打开 `http://localhost`，但 Nginx 返回 `502 Bad Gateway`。
 
-## Logs
+## 日志
 
-Nginx error log shows upstream connection failed.
+Nginx 错误日志提示 upstream connection failed。
 
-## Commands
+## 检查命令
 
 ```bash
 docker compose ps
@@ -20,13 +20,13 @@ curl http://127.0.0.1:8000/health
 ss -lntp | grep 8000
 ```
 
-## Root Cause
+## 根因
 
-FastAPI is not running, app health check failed, or Nginx upstream points to the wrong host/port.
+FastAPI 没有运行、应用健康检查失败，或 Nginx 上游主机/端口配置错误。
 
-## Solution
+## 解决
 
-Fix upstream config and restart services:
+修复上游配置并重启服务：
 
 ```bash
 docker compose restart app nginx

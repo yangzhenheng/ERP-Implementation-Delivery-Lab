@@ -1,32 +1,36 @@
-# Go-Live Checklist
+# 上线切换清单
 
-## Before Go-Live
+本清单用于面试展示 ERP 实施上线思路，适用于本地或测试演示环境，不代表真实客户生产上线方案。
 
-- Confirm server, CPU, memory, disk and network.
-- Confirm `.env` database, Redis and application settings.
-- Confirm MySQL backup can be created and restored.
-- Import master data and opening inventory.
-- Reconcile source and target counts.
-- Complete key API and business tests.
-- Confirm training and support contact.
+## 上线前
 
-## During Go-Live
+- 确认服务器 CPU、内存、磁盘、网络和端口。
+- 确认 `.env` 中数据库、Redis、应用参数正确。
+- 确认 MySQL 可以备份，也可以恢复。
+- 导入客户、产品、期初库存、历史订单等基础数据。
+- 核对源系统和目标系统的数据条数、关键金额和异常行。
+- 完成客户、产品、库存、订单、问题等核心接口测试。
+- 完成关键用户培训，确认问题反馈渠道和支持人。
+- 准备回退方案，明确失败时如何恢复到上线前状态。
 
-- Freeze business data changes.
-- Run final backup.
-- Run final migration import.
-- Start MySQL, Redis, FastAPI and Nginx.
-- Check `/health`, `/api/dashboard` and Swagger.
-- Verify customer, product, inventory and order business flow.
+## 上线中
 
-## After Go-Live
+- 冻结业务数据变更。
+- 执行最终备份。
+- 执行最终 CSV / SQL 数据迁移。
+- 启动 MySQL、Redis、FastAPI 和 Nginx。
+- 检查 `/health`、`/api/dashboard` 和 Swagger。
+- 验证新增客户、创建订单、库存校验、问题生成等核心流程。
+- 记录上线过程中的异常、负责人、处理结果和验证结果。
 
-- Monitor logs and service status.
-- Collect user feedback.
-- Record issues and owners.
-- Close blocking issues.
-- Prepare acceptance checklist.
+## 上线后
 
-## Interview Answer
+- 持续查看应用日志、Nginx 日志和数据库状态。
+- 收集用户首批操作反馈。
+- 跟踪未关闭问题，按优先级处理。
+- 关闭阻塞问题后组织验收确认。
+- 输出上线总结和交接说明。
 
-For ERP go-live, I first confirm the environment and backup, then migrate and reconcile data, start services, verify APIs and core business flow, support users during the first operations, and finally record issues and complete acceptance.
+## 面试回答
+
+ERP 上线不能只说“服务启动成功”。我会先确认环境、备份、迁移和回退方案；上线中启动服务并验证核心业务流程；上线后持续看日志和问题反馈；最后按验收清单确认交付结果。

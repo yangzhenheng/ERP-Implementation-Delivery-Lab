@@ -55,7 +55,7 @@ def test_customers_create_and_list():
                 "/api/customers",
                 json={
                     "customer_code": "CUST-T100",
-                    "customer_name": "Demo Test Customer",
+                    "customer_name": "模拟测试客户",
                     "contact": "Tester",
                     "phone": "13900000000",
                 },
@@ -106,7 +106,7 @@ def test_create_order_shortage_generates_issue():
         )
         assert result["status"] == "inventory_failed"
         issues = unwrap(client.get("/api/issues"))
-        assert any("Inventory shortage" in row["title"] for row in issues)
+        assert any("库存不足" in row["title"] for row in issues)
 
 
 def test_issues_create_update():

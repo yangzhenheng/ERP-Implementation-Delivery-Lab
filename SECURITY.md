@@ -1,31 +1,31 @@
-# Security Policy
+# 安全边界
 
-This project is a local interview demonstration lab, not a production ERP system.
+本项目是本地面试演示实验室，不是真实生产 ERP 系统。
 
-## Supported Use
+## 支持用途
 
-- Local development and interview demonstration.
-- Docker-based demo environment.
-- Mock ERP business data only.
+- 本地开发和面试演示。
+- Docker 演示环境。
+- 仅使用模拟 ERP 业务数据。
 
-## Sensitive Data Rules
+## 敏感数据规则
 
-- Never commit `.env`.
-- Never commit real customer data.
-- Never commit database dumps or runtime logs.
-- Use `.env.example` for configuration documentation.
+- 不提交 `.env`。
+- 不提交真实客户数据。
+- 不提交数据库备份文件或运行日志。
+- 使用 `.env.example` 说明配置项。
 
-## Reporting Issues
+## 问题记录
 
-For this personal lab, record security or configuration issues in `troubleshooting/` or GitHub Issues with:
+本个人实验室中的安全或配置问题，可记录到 `troubleshooting/` 或 GitHub Issues，并包含：
 
-- symptom
-- affected module
-- reproduction steps
-- root cause
-- fix
-- verification result
+- 现象
+- 影响模块
+- 复现步骤
+- 根因
+- 修复方式
+- 验证结果
 
-## Known Boundaries
+## 已知边界
 
-Authentication, authorization and production-grade hardening are intentionally out of scope for the current interview lab. Do not deploy this repository as a real customer production ERP system without adding those controls.
+当前项目没有实现真实认证、授权和生产级安全加固。未经补齐这些控制，不应部署为真实客户生产 ERP 系统。

@@ -1,7 +1,7 @@
 [project]
 name = "manufacturing-erp-implementation-delivery-lab"
-version = "2.1.0"
-description = "Interview-ready ERP implementation delivery lab with FastAPI, SQL, data migration, Docker and troubleshooting workflows."
+version = "2.2.0"
+description = "面向国内面试的制造业 ERP 实施交付实验室，覆盖 FastAPI、SQL、数据迁移、Docker 和故障排查。"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "yangzhenheng" }]

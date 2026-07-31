@@ -65,9 +65,9 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(
-    title="Manufacturing ERP Implementation Delivery Lab",
+    title="制造业 ERP 实施交付实验室",
     version="2.1.0",
-    description="An independently built ERP implementation interview lab. Demo data is mock data, not customer production data.",
+    description="面向国内 ERP / 软件实施工程师面试的个人实施交付演示项目。业务数据均为模拟数据，不代表真实客户生产环境。",
     lifespan=lifespan,
 )
 app.mount("/static", StaticFiles(directory=BASE_DIR / "app" / "static"), name="static")
@@ -158,7 +158,7 @@ def health(db: Session = Depends(get_session)):
     return api_ok(
         {
             "status": "ok",
-            "service": "manufacturing-erp-implementation-lab",
+            "service": "制造业 ERP 实施交付实验室",
             "app_env": os.getenv("APP_ENV", "dev"),
             "database": "mysql" if DATABASE_URL.startswith("mysql") else "sqlite",
         }
@@ -349,11 +349,11 @@ def create_order(payload: SalesOrderCreate, request: Request, db: Session = Depe
     if insufficient:
         db.add(
             Issue(
-                title=f"Inventory shortage for order {order.order_no}",
+                title=f"订单 {order.order_no} 库存不足",
                 module="inventory",
                 severity="P2",
                 status="open",
-                description=f"Stock validation failed: {insufficient}",
+                description=f"库存校验未通过：{insufficient}",
                 owner="implementation_engineer",
             )
         )
@@ -422,7 +422,7 @@ def system_status(db: Session = Depends(get_session)):
             "app": "ok",
             "database": db_status,
             "redis": redis_status,
-            "redis_note": "Redis is middleware for cache/status only. Core ERP API continues if Redis is unavailable.",
+            "redis_note": "Redis 在本项目中用于状态检查/缓存演示；Redis 不可用时，核心 ERP 业务接口应尽量保持可用。",
             "log_file": str(LOG_DIR / "app.log"),
         }
     )
