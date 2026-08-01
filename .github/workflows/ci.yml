@@ -34,3 +34,6 @@ jobs:
 
       - name: Validate Docker Compose syntax
         run: docker compose config --quiet
+
+      - name: Validate SQL Server lab Compose syntax
+        run: docker compose -f docker-compose.database-lab.yml config --quiet

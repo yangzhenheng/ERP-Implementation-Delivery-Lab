@@ -55,13 +55,13 @@ def check_http(base: str, path: str) -> bool:
     return False
 
 
-def check_tcp(name: str, host: str, port: int, mode: str) -> bool:
+def check_tcp(name: str, host: str, port: int, mode: str, require_full_stack: bool) -> bool:
     try:
         with socket.create_connection((host, port), timeout=2):
             print_result("PASS", f"TCP {name}", f"{host}:{port}")
             return True
     except OSError as exc:
-        if mode == "docker_optional":
+        if mode == "docker_optional" and not require_full_stack:
             print_result("SKIP", f"TCP {name}", f"{host}:{port} unavailable: {exc}")
             return True
         print_result("FAIL", f"TCP {name}", f"{host}:{port} unavailable: {exc}")
@@ -71,6 +71,7 @@ def check_tcp(name: str, host: str, port: int, mode: str) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser(description="V3 ERP interview edition verification.")
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
+    parser.add_argument("--require-full-stack", action="store_true", help="Require Docker/Nginx/MySQL/Redis ports to be reachable. No SKIP is allowed.")
     args = parser.parse_args()
 
     ok = True
@@ -84,7 +85,7 @@ def main() -> int:
 
     print("== TCP ==")
     for name, host, port, mode in TCP_CHECKS:
-        ok = check_tcp(name, host, port, mode) and ok
+        ok = check_tcp(name, host, port, mode, args.require_full_stack) and ok
 
     return 0 if ok else 1
 
