@@ -17,12 +17,12 @@ ERP实施｜MySQL｜SQL Server｜Linux｜Docker｜Nginx｜Redis｜数据迁移�
 | ERP frontend | VERIFIED | `/customers`、`/orders` 等页面由测试覆盖 |
 | Network lab | VERIFIED | `scripts/network_check.py` 可在 Windows 运行 |
 | Commercial module | VERIFIED | 商务里程碑 API 和页面已测试 |
-| Docker | NOT VERIFIED | 当前本机无 `docker` 命令 |
-| MySQL | NOT VERIFIED | 依赖 Docker Desktop 或本地 MySQL |
-| Redis | NOT VERIFIED | 依赖 Docker Desktop 或本地 Redis |
-| Nginx | NOT VERIFIED | 依赖 Docker Desktop |
-| Backup/Restore | NOT VERIFIED | 当前未连接真实 MySQL 服务 |
-| SQL Server | NOT VERIFIED | 当前本机无 Docker，SQL Server lab 未实跑 |
+| Docker | BLOCKED | 当前本机无 `docker` 命令 |
+| MySQL | BLOCKED | Docker/MySQL 运行环境不可用 |
+| Redis | BLOCKED | Docker/Redis 运行环境不可用 |
+| Nginx | BLOCKED | Docker/Nginx 运行环境不可用 |
+| Backup/Restore | BLOCKED | 当前无 Docker/MySQL/mysqldump |
+| SQL Server | BLOCKED | 当前本机无 Docker，SQL Server lab 未实跑 |
 | Oracle/DB2 docs | VERIFIED | 仅基础方言认知，不声称精通 |
 
 ## V3 新增重点
@@ -78,7 +78,7 @@ Swagger 保留用于实施工程师 API 联调；5-8 分钟主演示优先通过
 
 ## Docker 全栈
 
-当前本机未安装 Docker Desktop，不能真实验证 Docker/MySQL/Redis/Nginx。Docker 可用后执行：
+当前本机未安装或未暴露 Docker CLI，不能真实验证 Docker/MySQL/Redis/Nginx。Docker Desktop 启动后执行：
 
 ```bash
 cp .env.example .env
@@ -127,9 +127,10 @@ python scripts/network_check.py
 python -m compileall app scripts tests
 pytest -q
 python scripts/verify_v3.py
+python scripts/verify_v3.py --base-url http://localhost --require-full-stack
 ```
 
-如果 Docker 可用，再执行 Docker、MySQL、Redis、Nginx、backup/restore、SQL Server 验证，并更新 `docs/V3_FINAL_ACCEPTANCE_REPORT.md`。
+严格模式要求 80、3306、6379 均可达；当前环境因 Docker 不可用会阻塞，不可写成 PASS。
 
 ## 重点文档
 

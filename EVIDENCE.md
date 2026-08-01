@@ -14,15 +14,16 @@
 - V3 前端验证结果：`/dashboard`、`/customers`、`/orders`、`/commercial` 均为 `PASS`
 - 已验证 CSV 导入脚本，结果为 `success=8, failed=0, skipped=0`
 - 已执行 `scripts/network_check.py`，脚本真实报告本机 80/3306/6379 不可达，8000 可达
+- 已执行严格验证：`python scripts/verify_v3.py --base-url http://localhost --require-full-stack`，结果 `strict_exit=1`，原因是 80/3306/6379 不可达
 
 ## 未验证项
 
-- Docker Compose 全栈运行
-- MySQL 容器初始化和查询
-- Redis `PONG`
-- Nginx `http://localhost/health`
-- MySQL backup/restore 实跑
-- SQL Server 容器和 `sqlcmd` 执行
-- Nginx 502 故障注入和恢复
+- Docker Compose 全栈运行：`BLOCKED`
+- MySQL 容器初始化和查询：`BLOCKED`
+- Redis `PONG`：`BLOCKED`
+- Nginx `http://localhost/health`：`BLOCKED`
+- MySQL backup/restore 实跑：`BLOCKED`
+- SQL Server 容器和 `sqlcmd` 执行：`BLOCKED`
+- Nginx 502 故障注入和恢复：`BLOCKED`
 
-原因：当前电脑无 `docker`、`mysql`、`mysqldump` 命令。所有未实跑内容均保持 `NOT VERIFIED`。
+原因：当前电脑无 `docker`、`mysql`、`mysqldump` 命令。所有未实跑内容均保持 `BLOCKED`，不伪造 PASS。

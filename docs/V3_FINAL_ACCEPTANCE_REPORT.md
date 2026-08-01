@@ -1,6 +1,6 @@
 # V3 最终验收报告
 
-时间：2026-08-01 15:35:43 +08:00
+时间：2026-08-01 16:02:27 +08:00
 
 版本：3.0.0
 
@@ -8,26 +8,27 @@
 
 ## 验收结果
 
-| 项目 | 状态 | 证据 |
-|---|---|---|
-| FastAPI | PASS | `python scripts/verify_v3.py`，`/health` HTTP 200 |
-| pytest | PASS | `pytest -q` -> `24 passed` |
-| ERP frontend | PASS | `/dashboard`、`/customers`、`/orders`、`/commercial` HTTP 200 |
-| SQLite | PASS | 本地测试库和开发库可运行 |
-| MySQL | NOT VERIFIED | 当前本机无 Docker/MySQL 运行环境 |
-| Redis | NOT VERIFIED | 当前本机无 Docker/Redis 运行环境 |
-| Nginx | NOT VERIFIED | 当前本机无 Docker/Nginx 运行环境 |
-| Docker | NOT VERIFIED | `docker` 命令不存在 |
-| CSV migration | PASS | `python scripts/import_data.py --folder data/import` -> `success=8, failed=0`；API 测试覆盖 |
-| Backup | NOT VERIFIED | 缺 `mysqldump` 和 MySQL 服务 |
-| Restore | NOT VERIFIED | 缺 `mysql` 和 MySQL 服务 |
-| Network lab | PASS | `scripts/network_check.py` 已运行并真实报告端口状态 |
-| SQL Server | NOT VERIFIED | 当前本机无 Docker，未启动 SQL Server lab |
-| Oracle/DB2 docs | PASS | `docs/DATABASE_COMPATIBILITY_LAB.md` 已覆盖基础方言认知 |
-| Commercial module | PASS | `GET /api/commercial/summary`、`GET /api/payment-milestones` 和 `/commercial` 已测试 |
-| Fault recovery | NOT VERIFIED | Docker/Nginx 502 故障注入依赖 Docker 环境 |
+| 项目 | 状态 | 实际命令 | 关键输出摘要 |
+|---|---|---|---|
+| FastAPI | PASS | `python scripts/verify_v3.py --base-url http://127.0.0.1:8000` | `/health` HTTP 200 |
+| pytest | PASS | `pytest -q` | `24 passed` |
+| ERP frontend | PASS | `python scripts/verify_v3.py --base-url http://127.0.0.1:8000` | `/dashboard`、`/customers`、`/orders`、`/commercial` HTTP 200 |
+| SQLite | PASS | `pytest -q` | 本地测试库可创建、写入、查询 |
+| Docker | BLOCKED | `docker version` / `docker compose version` / `docker info` | `docker` 命令不存在 |
+| MySQL | BLOCKED | Docker/MySQL 查询命令未执行 | Docker CLI 不存在 |
+| Redis | BLOCKED | `docker compose exec redis redis-cli ping` 未执行 | Docker CLI 不存在 |
+| Nginx | BLOCKED | `curl.exe -i http://localhost/health` 未执行 Nginx 链路 | Docker/Nginx 不可用 |
+| CSV migration | PASS | `python scripts/import_data.py --folder data/import` | 干净临时库 `success=8, failed=0, skipped=0` |
+| Backup | BLOCKED | `scripts/backup_mysql_container.ps1` 未执行 | Docker/MySQL 不可用 |
+| Restore | BLOCKED | `scripts/restore_mysql_container.ps1` 未执行 | Docker/MySQL 不可用 |
+| Network lab | PASS | `python scripts/network_check.py` | 脚本可运行，并真实报告端口状态 |
+| SQL Server | BLOCKED | `docker compose -f docker-compose.database-lab.yml config` 未执行 | Docker CLI 不存在 |
+| Oracle/DB2 docs | PASS | 文档检查 | 已覆盖基础方言认知，不声称精通 |
+| Commercial module | PASS | `pytest -q` / `verify_v3.py` | 商务 API 和 `/commercial` 页面通过 |
+| Nginx 502 recovery | BLOCKED | 故障脚本未执行 | Docker/Nginx 不可用 |
+| E2E smoke test | NOT VERIFIED | 未安装/运行 Playwright | 已生成 `docs/SCREENSHOT_CHECKLIST.md` |
 
-## V3 API 验证输出
+## V3 默认验证输出
 
 ```text
 == HTTP API ==
@@ -55,42 +56,38 @@
 [SKIP] TCP Redis Docker - localhost:6379 unavailable
 ```
 
-## 网络检查输出
+## 严格全栈验证
 
-```text
-[PASS] DNS localhost -> 127.0.0.1
-[FAIL] TCP localhost:80 timed out
-[PASS] TCP localhost:8000
-[FAIL] TCP localhost:3306 timed out
-[FAIL] TCP localhost:6379 timed out
-[FAIL] HTTP http://localhost/health timed out
-[PASS] HTTP http://localhost:8000/health HTTP 200
+命令：
+
+```bash
+python scripts/verify_v3.py --base-url http://localhost --require-full-stack
 ```
 
-解释：80、3306、6379 依赖 Docker/Nginx/MySQL/Redis，当前本机没有 Docker 环境，因此失败是预期真实结果，不应写成通过。
+状态：`BLOCKED`
 
-## 当前可面试演示范围
+真实输出摘要：
 
-- ERP UI 打开和 Dashboard 查看。
-- UI 新增客户。
-- UI 创建订单。
-- 库存充足扣减库存。
-- 库存不足生成 Issue。
-- Issue 状态流转。
-- CSV 数据迁移。
-- 商务里程碑展示。
-- 网络排障脚本演示。
-- SQL Server / Oracle / DB2 方言认知讲解。
-- Swagger 作为接口联调工具说明。
+```text
+[FAIL] /health - [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+[FAIL] TCP Nginx Docker - localhost:80 unavailable: timed out
+[FAIL] TCP MySQL Docker - localhost:3306 unavailable: timed out
+[FAIL] TCP Redis Docker - localhost:6379 unavailable: timed out
+strict_exit=1
+```
 
-## 当前未验证内容
+原因：严格模式要求 80、3306、6379 均可达。当前 Docker CLI 不存在，Nginx/MySQL/Redis 无法启动，因此不能运行出 PASS。
 
-- Docker Compose 全栈真实运行。
-- MySQL 容器表结构和数据量查询。
-- Redis `PONG`。
-- Nginx 经 `http://localhost` 转发。
-- MySQL backup/restore 实跑。
-- SQL Server 容器启动和 `sqlcmd` 执行。
-- Nginx 502 故障注入和恢复。
+## 已知限制
 
-结论：V3 已适合初级 ERP / 软件实施工程师面试投递，用于展示实施流程、SQL、数据迁移、后台操作、问题闭环、商务节点、网络排障和诚实的验证边界。
+- 当前 Windows 环境没有 Docker CLI。
+- 当前环境没有宿主机 `mysql` / `mysqldump`。
+- SQL Server lab 依赖 Docker，尚未实跑。
+- Nginx 502 故障恢复依赖 Docker/Nginx，尚未实跑。
+- Playwright E2E 未安装和运行，改为截图清单。
+
+## 最终结论
+
+结论：**B. 可作为初级 ERP / 软件实施工程师面试项目**。
+
+理由：本地 FastAPI、SQLite、ERP UI、CSV 迁移、商务模块、网络排障脚本、SQL/数据库认知和 24 个 pytest 测试均已通过；但 Docker/MySQL/Redis/Nginx/Backup/Restore/SQL Server/Nginx 502 恢复仍被当前环境阻塞，尚不能评为“较强初级”。
