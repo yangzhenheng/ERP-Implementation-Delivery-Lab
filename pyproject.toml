@@ -1,7 +1,7 @@
 [project]
 name = "manufacturing-erp-implementation-delivery-lab"
-version = "2.2.0"
-description = "面向国内面试的制造业 ERP 实施交付实验室，覆盖 FastAPI、SQL、数据迁移、Docker 和故障排查。"
+version = "3.0.0"
+description = "制造业 ERP 实施交付实验室 V3，覆盖 UI 操作、商务里程碑、数据库实验室、网络排障和 V3 验证。"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "yangzhenheng" }]

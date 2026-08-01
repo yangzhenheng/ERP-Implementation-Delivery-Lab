@@ -47,4 +47,23 @@ INSERT INTO implementation_tasks(project_name, task_type, owner, status, priorit
 
 INSERT INTO issues(title, module, severity, status, description, owner) VALUES
 ('销售订单库存不足，暂不能确认','库存管理','P2','open','由演示库存校验流程生成的模拟问题。','implementation_engineer'),
-('CSV 导入模板日期格式不一致','数据迁移','P3','open','用于演示数据迁移校验和错误行记录。','implementation_engineer');
+('CSV 字段错误导致导入失败','数据迁移','P3','investigating','用于演示数据迁移校验和错误行记录。','implementation_engineer'),
+('MySQL 连接失败','数据库','P1','resolved','数据库连接参数错误。','implementation_engineer'),
+('Nginx 502 反向代理异常','部署联调','P2','closed','Nginx 上游路径需要确认。','implementation_engineer'),
+('客户主数据重复编码','客户管理','P4','open','用于演示客户编码唯一性校验。','implementation_engineer');
+
+UPDATE issues
+SET root_cause='数据库连接参数错误。', solution='修复 .env 并重启应用。', verification_result='健康检查和 SELECT 1 通过。'
+WHERE title='MySQL 连接失败';
+
+UPDATE issues
+SET root_cause='Nginx 上游路径需要确认。', solution='更新反向代理配置并通过健康检查验证。', verification_result='curl http://localhost/health 返回 200。'
+WHERE title='Nginx 502 反向代理异常';
+
+INSERT INTO implementation_projects(project_code, project_name, customer_id, contract_amount, project_status, start_date, planned_go_live) VALUES
+('ERP-DEMO-2026-001','华南智能制造 ERP 上线项目（模拟）',1,100000.00,'implementation',DATE('now','-20 day'),DATE('now','+15 day'));
+
+INSERT INTO payment_milestones(project_id, milestone_name, percentage, planned_amount, status, due_date, paid_date) VALUES
+(1,'签约款',30,30000.00,'paid',DATE('now','-15 day'),DATE('now','-14 day')),
+(1,'上线款',40,40000.00,'invoiced',DATE('now','+5 day'),NULL),
+(1,'验收款',30,30000.00,'pending',DATE('now','+35 day'),NULL);

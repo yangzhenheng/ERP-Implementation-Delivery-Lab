@@ -3,57 +3,105 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>制造业 ERP 实施交付实验室</title>
+<title>制造业 ERP 实施交付实验室 V3</title>
 <style>
-:root{--bg:#f4f6f8;--panel:#fff;--text:#172033;--muted:#657083;--line:#dfe4ea;--primary:#155e75;--ok:#087f5b;--warn:#b7791f;--bad:#b42318}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:"Microsoft YaHei",Inter,Segoe UI,Arial,sans-serif;color:var(--text)}
-.layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh}.side{background:#132238;color:#fff;padding:22px 16px}.brand{font-size:20px;font-weight:700;margin-bottom:24px;line-height:1.35}.nav{display:grid;gap:4px}.nav span{padding:10px 12px;border-radius:6px;color:#d6deea}.nav span:first-child{background:#203653;color:#fff}
-.main{padding:24px 28px}.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}.top h1{font-size:24px;margin:0}.top p{margin:5px 0 0;color:var(--muted)}
-.status{font-size:13px;border:1px solid var(--line);background:#fff;padding:8px 10px;border-radius:6px;white-space:nowrap}.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:15px}.metric-label{color:var(--muted);font-size:12px}.metric-value{font-size:26px;font-weight:700;margin-top:7px}
-.cols{display:grid;grid-template-columns:1.35fr .85fr;gap:14px;margin-top:14px}h2{font-size:16px;margin:0 0 12px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);font-weight:600}.tag{display:inline-block;border-radius:12px;padding:2px 8px;font-size:12px;background:#e7f5f8;color:var(--primary)}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.muted{color:var(--muted)}.task{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
-@media(max-width:980px){.layout{grid-template-columns:1fr}.side{position:static}.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}.nav{grid-template-columns:repeat(4,1fr)}}
+:root{--bg:#f3f5f7;--side:#17233a;--side2:#22314d;--panel:#fff;--text:#1f2937;--muted:#667085;--line:#d8dee8;--primary:#1769aa;--ok:#087f5b;--warn:#b7791f;--bad:#b42318;--info:#155e75}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:"Microsoft YaHei","Segoe UI",Arial,sans-serif;color:var(--text);font-size:14px}
+a{text-decoration:none;color:inherit}.layout{display:grid;grid-template-columns:232px 1fr;min-height:100vh}.side{background:var(--side);color:#eef3fb;padding:18px 14px}.brand{font-size:18px;font-weight:700;line-height:1.35;margin:6px 8px 20px}.nav{display:grid;gap:3px}.nav a{padding:11px 12px;border-radius:6px;color:#d6deea}.nav a.active,.nav a:hover{background:var(--side2);color:#fff}.main{padding:22px 26px}.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px}.top h1{font-size:22px;margin:0 0 5px}.top p{margin:0;color:var(--muted)}.env{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 12px;white-space:nowrap}.section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px}.metric div:first-child{font-size:12px;color:var(--muted)}.metric strong{display:block;font-size:25px;margin-top:7px}.split{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}h2{font-size:16px;margin:0 0 12px}table{width:100%;border-collapse:collapse;background:#fff}th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:middle}th{font-size:12px;color:var(--muted);font-weight:600;background:#fafbfc}.tag{display:inline-block;border-radius:12px;padding:2px 8px;font-size:12px;background:#edf2f7;color:var(--info);white-space:nowrap}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.muted{color:var(--muted)}.status-ok{background:#e6f4ee;color:var(--ok)}.status-warn{background:#fff7e6;color:#9a6700}.status-bad{background:#fdecec;color:var(--bad)}.form{display:grid;grid-template-columns:repeat(3,minmax(140px,1fr));gap:10px;align-items:end}.form label{display:grid;gap:5px;color:var(--muted);font-size:12px}.form input,.form select,.form textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 9px;background:#fff;color:var(--text);font:inherit}.form textarea{min-height:68px}.btn{border:1px solid #0f5f99;background:var(--primary);color:#fff;border-radius:6px;padding:8px 12px;font:inherit;cursor:pointer}.btn.secondary{background:#fff;color:var(--primary)}.notice{margin:8px 0 0;padding:9px 10px;border-radius:6px;border:1px solid var(--line);background:#fff}.notice.good{border-color:#b7e4cc;background:#effaf4}.notice.bad{border-color:#f3b7b7;background:#fff1f1}.timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.milestone{border:1px solid var(--line);border-radius:8px;padding:13px;background:#fff}.hide{display:none}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}.side{position:static}.nav{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}.form{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="layout">
   <aside class="side">
-    <div class="brand">制造业 ERP<br>实施交付实验室</div>
-    <div class="nav">
-      <span>驾驶舱</span><span>客户</span><span>产品</span><span>订单</span><span>库存</span><span>问题</span><span>实施任务</span><span>系统状态</span>
-    </div>
+    <div class="brand">制造业 ERP<br>实施交付实验室 V3</div>
+    <nav class="nav" id="nav">
+      <a href="/dashboard" data-path="/dashboard">驾驶舱</a>
+      <a href="/customers" data-path="/customers">客户管理</a>
+      <a href="/products" data-path="/products">产品管理</a>
+      <a href="/inventory" data-path="/inventory">库存管理</a>
+      <a href="/orders" data-path="/orders">销售订单</a>
+      <a href="/issues" data-path="/issues">问题工单</a>
+      <a href="/implementation" data-path="/implementation">实施任务</a>
+      <a href="/commercial" data-path="/commercial">项目商务</a>
+      <a href="/system" data-path="/system">系统状态</a>
+    </nav>
   </aside>
   <main class="main">
     <div class="top">
-      <div><h1>ERP 实施交付驾驶舱</h1><p>覆盖部署、MySQL、Linux、数据迁移、接口联调、日志排查、培训与上线验收。</p></div>
-      <div class="status" id="status">系统状态检查中...</div>
+      <div><h1 id="page-title">制造业 ERP 实施交付实验室</h1><p id="page-subtitle">典型中国企业 ERP 后台风格，所有业务数据均为模拟数据。</p></div>
+      <div class="env">演示环境 <span class="tag">Demo</span></div>
     </div>
-    <section class="grid" id="metrics"></section>
-    <section class="cols">
-      <div class="panel"><h2>销售订单</h2><table><thead><tr><th>订单号</th><th>客户</th><th>日期</th><th>金额</th><th>状态</th></tr></thead><tbody id="orders"></tbody></table></div>
-      <div class="panel"><h2>实施任务</h2><div id="tasks"></div></div>
-    </section>
-    <section class="cols">
-      <div class="panel"><h2>库存校验</h2><table><thead><tr><th>产品</th><th>仓库</th><th>数量</th><th>安全库存</th><th>状态</th></tr></thead><tbody id="inventory"></tbody></table></div>
-      <div class="panel"><h2>未关闭问题</h2><table><thead><tr><th>问题</th><th>模块</th><th>级别</th></tr></thead><tbody id="issues"></tbody></table></div>
-    </section>
+    <div id="app"></div>
   </main>
 </div>
 <script>
-async function api(url){const r=await fetch(url);const b=await r.json();if(b.code!==0)throw new Error(b.message);return b.data}
-const statusText={completed:'已完成',confirmed:'已确认',normal:'正常',closed:'已关闭',ok:'正常',open:'未关闭',low_stock:'库存不足',inventory_failed:'库存校验失败',in_progress:'进行中',not_started:'未开始',degraded_without_redis:'Redis降级运行',unavailable_degraded:'不可用已降级'};
+const $=s=>document.querySelector(s);
+const app=$('#app');
+const statusText={completed:'已完成',confirmed:'已确认',draft:'草稿',normal:'正常',closed:'已关闭',ok:'正常',open:'未处理',low_stock:'低于安全库存',inventory_failed:'库存校验失败',in_progress:'进行中',not_started:'未开始',degraded_without_redis:'Redis 降级运行',unavailable_degraded:'不可用已降级',investigating:'调查中',resolved:'已解决',paid:'已收款',invoiced:'已开票',pending:'待处理',overdue:'逾期',implementation:'实施中'};
 const taskText={requirements:'需求调研',installation:'安装部署',configuration:'系统配置',data_migration:'数据迁移',testing:'联调测试',training:'用户培训',go_live:'上线切换',acceptance:'验收交付'};
-function label(v){return statusText[v]||taskText[v]||v}
-function statusClass(v){return v==='completed'||v==='normal'||v==='closed'||v==='ok'||v==='confirmed'?'ok':(v==='open'||v==='low_stock'||v==='inventory_failed'?'bad':'warn')}
-(async()=>{
- const d=await api('/api/dashboard');
- const cards=[['订单总数',d.order_count],['今日订单',d.today_orders],['销售金额','¥'+Number(d.order_amount).toLocaleString()],['库存不足',d.low_stock_products],['未关闭问题',d.open_issues],['实施进度',d.implementation_progress+'%']];
- document.querySelector('#metrics').innerHTML=cards.map(x=>`<div class="panel"><div class="metric-label">${x[0]}</div><div class="metric-value">${x[1]}</div></div>`).join('');
- document.querySelector('#status').innerHTML=`系统：<span class="${statusClass(d.system_status)}">${label(d.system_status)}</span>`;
- const orders=await api('/api/orders');document.querySelector('#orders').innerHTML=orders.slice(0,6).map(o=>`<tr><td>${o.order_no}</td><td>${o.customer_name}</td><td>${o.order_date}</td><td>¥${Number(o.total_amount).toLocaleString()}</td><td><span class="${statusClass(o.status)}">${label(o.status)}</span></td></tr>`).join('');
- const tasks=await api('/api/implementation/tasks');document.querySelector('#tasks').innerHTML=tasks.map(t=>`<div class="task"><div><b>${label(t.task_type)}</b><div class="muted">${t.owner} · ${t.priority}</div></div><span class="${statusClass(t.status)}">${label(t.status)}</span></div>`).join('');
- const inv=await api('/api/inventory');document.querySelector('#inventory').innerHTML=inv.map(i=>`<tr><td>${i.product_code}<br><span class="muted">${i.product_name}</span></td><td>${i.warehouse_code}</td><td>${i.quantity}</td><td>${i.safety_stock}</td><td><span class="${statusClass(i.stock_status)}">${label(i.stock_status)}</span></td></tr>`).join('');
- const issues=await api('/api/issues');document.querySelector('#issues').innerHTML=issues.filter(i=>i.status!=='closed').slice(0,5).map(i=>`<tr><td>${i.title}</td><td>${i.module}</td><td><span class="tag">${i.severity}</span></td></tr>`).join('');
-})().catch(e=>{document.querySelector('#status').textContent=e.message});
+const routes={'/':'/dashboard','/dashboard':'驾驶舱','/customers':'客户管理','/products':'产品管理','/inventory':'库存管理','/orders':'销售订单','/issues':'问题工单','/implementation':'实施任务','/commercial':'项目商务','/system':'系统状态'};
+function label(v){return statusText[v]||taskText[v]||v||''}
+function money(v){return '¥'+Number(v||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function cls(v){return ['ok','normal','completed','confirmed','closed','paid','resolved'].includes(v)?'status-ok':(['open','low_stock','inventory_failed','overdue'].includes(v)?'status-bad':'status-warn')}
+function tag(v){return `<span class="tag ${cls(v)}">${label(v)}</span>`}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function api(url,options){const r=await fetch(url,{headers:{'content-type':'application/json'},...options});const b=await r.json();if(b.code!==0)throw new Error(b.message);return b.data}
+function setTitle(title,subtitle){$('#page-title').textContent=title;$('#page-subtitle').textContent=subtitle||'所有数据均为模拟数据，用于 ERP / 软件实施工程师面试演示。'}
+function table(head,rows){return `<table><thead><tr>${head.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`}
+function setActive(path){document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.path===path))}
+async function dashboard(){
+ setTitle('ERP 实施驾驶舱','从业务、实施、部署和排障角度展示项目全貌。');
+ const d=await api('/api/dashboard'); const orders=await api('/api/orders'); const inv=await api('/api/inventory'); const issues=await api('/api/issues'); const tasks=await api('/api/implementation/tasks');
+ app.innerHTML=`<section class="grid">${[['订单总数',d.order_count],['今日订单',d.today_orders],['销售金额',money(d.order_amount)],['库存不足',d.low_stock_products],['未关闭问题',d.open_issues],['实施进度',d.implementation_progress+'%'],['系统状态',label(d.system_status)],['演示版本','V3.0.0']].map(x=>`<div class="metric"><div>${x[0]}</div><strong>${x[1]}</strong></div>`).join('')}</section>
+ <section class="split"><div class="section"><h2>最近销售订单</h2>${table(['订单号','客户','日期','金额','状态'],orders.slice(0,6).map(o=>`<tr><td>${o.order_no}</td><td>${esc(o.customer_name)}</td><td>${o.order_date}</td><td>${money(o.total_amount)}</td><td>${tag(o.status)}</td></tr>`))}</div><div class="section"><h2>实施任务</h2>${table(['任务','负责人','优先级','状态'],tasks.map(t=>`<tr><td>${label(t.task_type)}</td><td>${t.owner}</td><td>${t.priority}</td><td>${tag(t.status)}</td></tr>`))}</div></section>
+ <section class="split"><div class="section"><h2>库存预警</h2>${table(['产品','仓库','库存','安全库存','状态'],inv.map(i=>`<tr><td>${i.product_code}<br><span class="muted">${esc(i.product_name)}</span></td><td>${esc(i.warehouse_name)}</td><td>${i.quantity}</td><td>${i.safety_stock}</td><td>${tag(i.stock_status)}</td></tr>`))}</div><div class="section"><h2>未关闭问题</h2>${table(['编号','标题','级别','状态'],issues.filter(i=>i.status!=='closed').slice(0,6).map(i=>`<tr><td>${i.issue_id}</td><td>${esc(i.title)}</td><td>${i.severity}</td><td>${tag(i.status)}</td></tr>`))}</div></section>`;
+}
+async function customers(){
+ setTitle('客户管理','客户编码用于订单、迁移和对账，必须保持唯一。');
+ const rows=await api('/api/customers');
+ app.innerHTML=`<section class="section"><h2>新增客户</h2><form class="form" id="customer-form"><label>客户编码<input name="customer_code" required maxlength="32"></label><label>客户名称<input name="customer_name" required maxlength="128"></label><label>联系人<input name="contact"></label><label>电话<input name="phone"></label><label style="grid-column:span 2">地址<input name="address"></label><button class="btn">保存客户</button></form><div id="notice"></div></section><section class="section"><h2>客户列表</h2>${table(['编码','名称','联系人','电话','地址','状态'],rows.map(c=>`<tr><td>${c.customer_code}</td><td>${esc(c.customer_name)}</td><td>${esc(c.contact)}</td><td>${esc(c.phone)}</td><td>${esc(c.address)}</td><td>${tag(c.status)}</td></tr>`))}</section>`;
+ $('#customer-form').onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target).entries());try{await api('/api/customers',{method:'POST',body:JSON.stringify(data)});$('#notice').innerHTML='<div class="notice good">客户已新增，页面正在刷新。</div>';setTimeout(customers,350)}catch(err){$('#notice').innerHTML=`<div class="notice bad">${esc(err.message)}</div>`}};
+}
+async function products(){
+ setTitle('产品管理','产品编码、单位和标准价格是订单与库存核对基础。');
+ const rows=await api('/api/products');
+ app.innerHTML=`<section class="section"><h2>产品列表</h2>${table(['编码','名称','分类','单位','标准价格','状态'],rows.map(p=>`<tr><td>${p.product_code}</td><td>${esc(p.product_name)}</td><td>${esc(p.category)}</td><td>${esc(p.unit)}</td><td>${money(p.standard_price)}</td><td>${tag(p.status)}</td></tr>`))}</section>`;
+}
+async function inventory(){
+ setTitle('库存管理','低于安全库存时以专业状态标签提示。');
+ const rows=await api('/api/inventory');
+ app.innerHTML=`<section class="section"><h2>库存台账</h2>${table(['产品编码','产品名称','仓库','库存','安全库存','状态'],rows.map(i=>`<tr><td>${i.product_code}</td><td>${esc(i.product_name)}</td><td>${esc(i.warehouse_name)}</td><td>${i.quantity}</td><td>${i.safety_stock}</td><td>${tag(i.stock_status)}</td></tr>`))}</section>`;
+}
+async function orders(){
+ setTitle('销售订单','通过 UI 新增订单，不依赖 Swagger 完成主演示。');
+ const customers=await api('/api/customers'); const products=await api('/api/products'); const orders=await api('/api/orders');
+ app.innerHTML=`<section class="section"><h2>新增销售订单</h2><form class="form" id="order-form"><label>客户<select name="customer_id">${customers.map(c=>`<option value="${c.customer_id}">${esc(c.customer_name)}</option>`).join('')}</select></label><label>产品<select name="product_id">${products.map(p=>`<option value="${p.product_id}">${p.product_code} ${esc(p.product_name)}</option>`).join('')}</select></label><label>数量<input name="quantity" type="number" min="1" value="1" required></label><button class="btn">创建订单</button></form><div id="notice"></div></section><section class="section"><h2>订单列表</h2>${table(['订单编号','客户','日期','状态','金额'],orders.map(o=>`<tr><td>${o.order_no}</td><td>${esc(o.customer_name)}</td><td>${o.order_date}</td><td>${tag(o.status)}</td><td>${money(o.total_amount)}</td></tr>`))}</section>`;
+ $('#order-form').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target);const payload={customer_id:Number(fd.get('customer_id')),items:[{product_id:Number(fd.get('product_id')),quantity:Number(fd.get('quantity'))}]};try{const r=await api('/api/orders',{method:'POST',body:JSON.stringify(payload)});const msg=r.status==='inventory_failed'?'库存不足，已生成问题工单。':'订单已创建并确认，库存已扣减。';$('#notice').innerHTML=`<div class="notice ${r.status==='inventory_failed'?'bad':'good'}">${msg} 状态：${label(r.status)}</div>`;setTimeout(orders,500)}catch(err){$('#notice').innerHTML=`<div class="notice bad">${esc(err.message)}</div>`}};
+}
+async function issues(){
+ setTitle('问题工单','支持 open、investigating、resolved、closed 状态流转。');
+ const rows=await api('/api/issues');
+ app.innerHTML=`<section class="section"><h2>问题工单</h2>${table(['编号','标题','模块','P级','状态','负责人','根因','解决方案','验证结果','操作'],rows.map(i=>`<tr><td>${i.issue_id}</td><td>${esc(i.title)}</td><td>${esc(i.module)}</td><td>${i.severity}</td><td>${tag(i.status)}</td><td>${esc(i.owner)}</td><td>${esc(i.root_cause)}</td><td>${esc(i.solution)}</td><td>${esc(i.verification_result)}</td><td><select data-issue="${i.issue_id}">${['open','investigating','resolved','closed'].map(s=>`<option value="${s}" ${s===i.status?'selected':''}>${label(s)}</option>`).join('')}</select></td></tr>`))}</section>`;
+ document.querySelectorAll('select[data-issue]').forEach(s=>s.onchange=async()=>{await api(`/api/issues/${s.dataset.issue}`,{method:'PUT',body:JSON.stringify({status:s.value,verification_result:'V3 UI 状态更新已保存。'})});issues()});
+}
+async function implementation(){
+ setTitle('实施任务','覆盖需求、安装、配置、数据迁移、测试、培训、上线和验收。');
+ const rows=await api('/api/implementation/tasks');
+ app.innerHTML=`<section class="section"><h2>实施任务清单</h2>${table(['任务','负责人','优先级','计划日期','完成日期','状态'],rows.map(t=>`<tr><td>${label(t.task_type)}</td><td>${t.owner}</td><td>${t.priority}</td><td>${t.planned_date||''}</td><td>${t.completed_date||''}</td><td>${tag(t.status)}</td></tr>`))}</section>`;
+}
+async function commercial(){
+ setTitle('项目商务','Mock commercial data only，不接真实支付。');
+ const summary=await api('/api/commercial/summary'); const projects=await api('/api/projects'); const milestones=await api('/api/payment-milestones');
+ app.innerHTML=`<section class="grid">${[['合同总额',money(summary.contract_amount)],['已收金额',money(summary.paid_amount)],['待收金额',money(summary.pending_amount)],['逾期金额',money(summary.overdue_amount)]].map(x=>`<div class="metric"><div>${x[0]}</div><strong>${x[1]}</strong></div>`).join('')}</section><section class="section"><h2>项目列表</h2>${table(['项目编码','项目名称','客户','合同金额','状态','计划上线'],projects.map(p=>`<tr><td>${p.project_code}</td><td>${esc(p.project_name)}</td><td>${esc(p.customer_name)}</td><td>${money(p.contract_amount)}</td><td>${tag(p.project_status)}</td><td>${p.planned_go_live||''}</td></tr>`))}</section><section class="section"><h2>付款里程碑</h2><div class="timeline">${milestones.map(m=>`<div class="milestone"><h2>${esc(m.milestone_name)}</h2><p>${m.percentage}% · ${money(m.planned_amount)}</p><p>${tag(m.status)}</p><p class="muted">到期：${m.due_date||''}　收款：${m.paid_date||'-'}</p></div>`).join('')}</div></section>`;
+}
+async function system(){
+ setTitle('系统状态','用于实施工程师检查数据库、Redis、日志和运行状态。');
+ const s=await api('/api/system/status');
+ app.innerHTML=`<section class="section"><h2>运行状态</h2>${table(['项目','状态','说明'],[`<tr><td>应用</td><td>${tag(s.app)}</td><td>FastAPI 应用服务</td></tr>`,`<tr><td>数据库</td><td>${tag(s.database)}</td><td>SQLite / MySQL 当前连接</td></tr>`,`<tr><td>Redis</td><td>${tag(s.redis)}</td><td>${esc(s.redis_note)}</td></tr>`,`<tr><td>日志</td><td>${tag('ok')}</td><td>${esc(s.log_file)}</td></tr>`])}</section>`;
+}
+async function run(){let path=location.pathname==='/'?'/dashboard':location.pathname;if(!routes[path])path='/dashboard';setActive(path);try{await ({'/dashboard':dashboard,'/customers':customers,'/products':products,'/inventory':inventory,'/orders':orders,'/issues':issues,'/implementation':implementation,'/commercial':commercial,'/system':system}[path])()}catch(err){app.innerHTML=`<div class="notice bad">${esc(err.message)}</div>`}}
+run();
 </script>
 </body>
 </html>

@@ -94,9 +94,36 @@ CREATE TABLE IF NOT EXISTS issues (
   description TEXT,
   root_cause TEXT,
   solution TEXT,
+  verification_result TEXT,
   owner VARCHAR(64) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   resolved_at DATETIME
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS implementation_projects (
+  project_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  project_code VARCHAR(32) NOT NULL UNIQUE,
+  project_name VARCHAR(128) NOT NULL,
+  customer_id BIGINT NOT NULL,
+  contract_amount DECIMAL(14,2) NOT NULL,
+  project_status VARCHAR(32) NOT NULL,
+  start_date DATE,
+  planned_go_live DATE,
+  actual_go_live DATE,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_project_customer FOREIGN KEY(customer_id) REFERENCES customers(customer_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS payment_milestones (
+  milestone_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  project_id BIGINT NOT NULL,
+  milestone_name VARCHAR(64) NOT NULL,
+  percentage INT NOT NULL,
+  planned_amount DECIMAL(14,2) NOT NULL,
+  status VARCHAR(32) NOT NULL,
+  due_date DATE,
+  paid_date DATE,
+  CONSTRAINT fk_milestone_project FOREIGN KEY(project_id) REFERENCES implementation_projects(project_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS operation_logs (

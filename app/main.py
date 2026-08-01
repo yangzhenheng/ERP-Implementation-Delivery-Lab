@@ -21,10 +21,12 @@ from .db import (
     DATABASE_URL,
     Customer,
     ImplementationTask,
+    ImplementationProject,
     Inventory,
     InventoryTransaction,
     Issue,
     OperationLog,
+    PaymentMilestone,
     Product,
     SalesOrder,
     SalesOrderItem,
@@ -65,8 +67,8 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(
-    title="制造业 ERP 实施交付实验室",
-    version="2.1.0",
+    title="制造业 ERP 实施交付实验室 V3",
+    version="3.0.0",
     description="面向国内 ERP / 软件实施工程师面试的个人实施交付演示项目。业务数据均为模拟数据，不代表真实客户生产环境。",
     lifespan=lifespan,
 )
@@ -99,15 +101,16 @@ class CustomerCreate(BaseModel):
 class IssueCreate(BaseModel):
     title: str = Field(min_length=3, max_length=160)
     module: str = Field(min_length=2, max_length=64)
-    severity: str = Field(default="P2", pattern="^(P1|P2|P3)$")
+    severity: str = Field(default="P2", pattern="^(P1|P2|P3|P4)$")
     description: str | None = None
     owner: str = "implementation_engineer"
 
 
 class IssueUpdate(BaseModel):
-    status: str | None = Field(default=None, pattern="^(open|in_progress|closed)$")
+    status: str | None = Field(default=None, pattern="^(open|investigating|resolved|closed)$")
     root_cause: str | None = None
     solution: str | None = None
+    verification_result: str | None = None
     owner: str | None = None
 
 
@@ -149,6 +152,19 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
+    return (BASE_DIR / "app" / "static" / "index.html").read_text(encoding="utf-8")
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/customers", response_class=HTMLResponse)
+@app.get("/products", response_class=HTMLResponse)
+@app.get("/inventory", response_class=HTMLResponse)
+@app.get("/orders", response_class=HTMLResponse)
+@app.get("/issues", response_class=HTMLResponse)
+@app.get("/implementation", response_class=HTMLResponse)
+@app.get("/commercial", response_class=HTMLResponse)
+@app.get("/system", response_class=HTMLResponse)
+def erp_page():
     return (BASE_DIR / "app" / "static" / "index.html").read_text(encoding="utf-8")
 
 
@@ -350,7 +366,7 @@ def create_order(payload: SalesOrderCreate, request: Request, db: Session = Depe
         db.add(
             Issue(
                 title=f"订单 {order.order_no} 库存不足",
-                module="inventory",
+                module="库存管理",
                 severity="P2",
                 status="open",
                 description=f"库存校验未通过：{insufficient}",
@@ -397,6 +413,144 @@ def update_issue(issue_id: int, payload: IssueUpdate, request: Request, db: Sess
 def list_implementation_tasks(db: Session = Depends(get_session)):
     rows = db.scalars(select(ImplementationTask).order_by(ImplementationTask.task_id)).all()
     return api_ok(rows)
+
+
+@app.get("/api/implementation")
+def implementation_summary(db: Session = Depends(get_session)):
+    rows = db.scalars(select(ImplementationTask).order_by(ImplementationTask.task_id)).all()
+    total = len(rows)
+    completed = len([row for row in rows if row.status == "completed"])
+    return api_ok({"total_tasks": total, "completed_tasks": completed, "tasks": rows})
+
+
+@app.get("/api/projects")
+def list_projects(db: Session = Depends(get_session)):
+    rows = db.query(ImplementationProject, Customer).join(Customer, Customer.customer_id == ImplementationProject.customer_id).order_by(ImplementationProject.project_id).all()
+    return api_ok(
+        [
+            {
+                "project_id": project.project_id,
+                "project_code": project.project_code,
+                "project_name": project.project_name,
+                "customer_id": project.customer_id,
+                "customer_name": customer.customer_name,
+                "contract_amount": row_decimal(project.contract_amount),
+                "project_status": project.project_status,
+                "start_date": project.start_date,
+                "planned_go_live": project.planned_go_live,
+                "actual_go_live": project.actual_go_live,
+                "created_at": project.created_at,
+            }
+            for project, customer in rows
+        ]
+    )
+
+
+@app.get("/api/projects/{project_id}")
+def get_project(project_id: int, db: Session = Depends(get_session)):
+    project = db.get(ImplementationProject, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="project not found")
+    return api_ok(
+        {
+            "project_id": project.project_id,
+            "project_code": project.project_code,
+            "project_name": project.project_name,
+            "customer": project.customer,
+            "contract_amount": row_decimal(project.contract_amount),
+            "project_status": project.project_status,
+            "start_date": project.start_date,
+            "planned_go_live": project.planned_go_live,
+            "actual_go_live": project.actual_go_live,
+            "milestones": [
+                {
+                    "milestone_id": item.milestone_id,
+                    "milestone_name": item.milestone_name,
+                    "percentage": item.percentage,
+                    "planned_amount": row_decimal(item.planned_amount),
+                    "status": item.status,
+                    "due_date": item.due_date,
+                    "paid_date": item.paid_date,
+                }
+                for item in project.milestones
+            ],
+        }
+    )
+
+
+@app.get("/api/payment-milestones")
+def list_payment_milestones(db: Session = Depends(get_session)):
+    rows = db.query(PaymentMilestone, ImplementationProject).join(ImplementationProject, ImplementationProject.project_id == PaymentMilestone.project_id).order_by(PaymentMilestone.milestone_id).all()
+    return api_ok(
+        [
+            {
+                "milestone_id": milestone.milestone_id,
+                "project_id": milestone.project_id,
+                "project_code": project.project_code,
+                "project_name": project.project_name,
+                "milestone_name": milestone.milestone_name,
+                "percentage": milestone.percentage,
+                "planned_amount": row_decimal(milestone.planned_amount),
+                "status": milestone.status,
+                "due_date": milestone.due_date,
+                "paid_date": milestone.paid_date,
+            }
+            for milestone, project in rows
+        ]
+    )
+
+
+@app.get("/api/commercial/summary")
+def commercial_summary(db: Session = Depends(get_session)):
+    total_contract = db.scalar(select(func.coalesce(func.sum(ImplementationProject.contract_amount), 0))) or Decimal("0")
+    paid_amount = db.scalar(select(func.coalesce(func.sum(PaymentMilestone.planned_amount), 0)).where(PaymentMilestone.status == "paid")) or Decimal("0")
+    invoiced_amount = db.scalar(select(func.coalesce(func.sum(PaymentMilestone.planned_amount), 0)).where(PaymentMilestone.status == "invoiced")) or Decimal("0")
+    overdue_amount = (
+        db.scalar(
+            select(func.coalesce(func.sum(PaymentMilestone.planned_amount), 0)).where(
+                PaymentMilestone.status.in_(["pending", "invoiced"]),
+                PaymentMilestone.due_date < date.today(),
+            )
+        )
+        or Decimal("0")
+    )
+    return api_ok(
+        {
+            "mock_notice": "Mock commercial data only. 不接入真实支付。",
+            "contract_amount": row_decimal(total_contract),
+            "paid_amount": row_decimal(paid_amount),
+            "pending_amount": row_decimal(total_contract - paid_amount),
+            "invoiced_amount": row_decimal(invoiced_amount),
+            "overdue_amount": row_decimal(overdue_amount),
+        }
+    )
+
+
+@app.get("/api/commercial")
+def commercial_overview(db: Session = Depends(get_session)):
+    total_contract = db.scalar(select(func.coalesce(func.sum(ImplementationProject.contract_amount), 0))) or Decimal("0")
+    paid_amount = db.scalar(select(func.coalesce(func.sum(PaymentMilestone.planned_amount), 0)).where(PaymentMilestone.status == "paid")) or Decimal("0")
+    overdue_amount = (
+        db.scalar(
+            select(func.coalesce(func.sum(PaymentMilestone.planned_amount), 0)).where(
+                PaymentMilestone.status.in_(["pending", "invoiced"]),
+                PaymentMilestone.due_date < date.today(),
+            )
+        )
+        or Decimal("0")
+    )
+    milestones = db.scalars(select(PaymentMilestone).order_by(PaymentMilestone.milestone_id)).all()
+    return api_ok(
+        {
+            "summary": {
+                "contract_amount": row_decimal(total_contract),
+                "paid_amount": row_decimal(paid_amount),
+                "pending_amount": row_decimal(total_contract - paid_amount),
+                "overdue_amount": row_decimal(overdue_amount),
+            },
+            "milestones": milestones,
+        }
+    )
 
 
 @app.post("/api/data/import")

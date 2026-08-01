@@ -9,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    inspect,
     Integer,
     Numeric,
     String,
@@ -17,6 +18,7 @@ from sqlalchemy import (
     create_engine,
     func,
     select,
+    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 
@@ -177,9 +179,43 @@ class Issue(Base):
     description: Mapped[str | None] = mapped_column(Text)
     root_cause: Mapped[str | None] = mapped_column(Text)
     solution: Mapped[str | None] = mapped_column(Text)
+    verification_result: Mapped[str | None] = mapped_column(Text)
     owner: Mapped[str] = mapped_column(String(64), default="implementation_engineer", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ImplementationProject(Base):
+    __tablename__ = "implementation_projects"
+
+    project_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    project_code: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
+    project_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.customer_id"), nullable=False)
+    contract_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    project_status: Mapped[str] = mapped_column(String(32), default="implementation", nullable=False)
+    start_date: Mapped[date | None] = mapped_column(Date)
+    planned_go_live: Mapped[date | None] = mapped_column(Date)
+    actual_go_live: Mapped[date | None] = mapped_column(Date)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+    customer: Mapped[Customer] = relationship()
+    milestones: Mapped[list["PaymentMilestone"]] = relationship(back_populates="project", cascade="all, delete-orphan")
+
+
+class PaymentMilestone(Base):
+    __tablename__ = "payment_milestones"
+
+    milestone_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("implementation_projects.project_id"), nullable=False)
+    milestone_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    percentage: Mapped[int] = mapped_column(Integer, nullable=False)
+    planned_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False)
+    due_date: Mapped[date | None] = mapped_column(Date)
+    paid_date: Mapped[date | None] = mapped_column(Date)
+
+    project: Mapped[ImplementationProject] = relationship(back_populates="milestones")
 
 
 class OperationLog(Base):
@@ -198,6 +234,8 @@ Index("idx_sales_orders_status", SalesOrder.status)
 Index("idx_sales_orders_customer", SalesOrder.customer_id)
 Index("idx_inventory_product", Inventory.product_id)
 Index("idx_issues_status", Issue.status)
+Index("idx_projects_customer", ImplementationProject.customer_id)
+Index("idx_payment_milestones_project", PaymentMilestone.project_id)
 Index("idx_operation_logs_request", OperationLog.request_id)
 
 
@@ -211,10 +249,25 @@ def get_session():
 
 def init_db() -> None:
     Base.metadata.create_all(bind=engine)
+    upgrade_existing_schema()
     with SessionLocal() as db:
         if db.scalar(select(func.count(Customer.customer_id))) == 0:
             seed_demo_data(db)
             db.commit()
+        else:
+            seed_v3_demo_data(db)
+            db.commit()
+
+
+def upgrade_existing_schema() -> None:
+    inspector = inspect(engine)
+    if "issues" in inspector.get_table_names():
+        columns = {col["name"] for col in inspector.get_columns("issues")}
+        if "verification_result" not in columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE issues ADD COLUMN verification_result TEXT"))
+        with engine.begin() as conn:
+            conn.execute(text("UPDATE issues SET status = 'investigating' WHERE status = 'in_progress'"))
 
 
 def seed_demo_data(db: Session) -> None:
@@ -286,7 +339,48 @@ def seed_demo_data(db: Session) -> None:
     db.add_all(
         [
             Issue(title="销售订单库存不足，暂不能确认", module="库存管理", severity="P2", status="open", description="由演示库存校验流程生成的模拟问题。", owner="implementation_engineer"),
-            Issue(title="CSV 导入模板日期格式不一致", module="数据迁移", severity="P3", status="open", description="用于演示数据迁移校验和错误行记录。", owner="implementation_engineer"),
-            Issue(title="Nginx 反向代理路径已验证", module="部署联调", severity="P2", status="closed", root_cause="Nginx 上游路径需要确认。", solution="更新反向代理配置并通过健康检查验证。", owner="implementation_engineer", resolved_at=now_utc()),
+            Issue(title="CSV 字段错误导致导入失败", module="数据迁移", severity="P3", status="investigating", description="用于演示数据迁移校验和错误行记录。", owner="implementation_engineer"),
+            Issue(title="MySQL 连接失败", module="数据库", severity="P1", status="resolved", root_cause="数据库连接参数错误。", solution="修复 .env 并重启应用。", verification_result="健康检查和 SELECT 1 通过。", owner="implementation_engineer"),
+            Issue(title="Nginx 502 反向代理异常", module="部署联调", severity="P2", status="closed", root_cause="Nginx 上游路径需要确认。", solution="更新反向代理配置并通过健康检查验证。", verification_result="curl http://localhost/health 返回 200。", owner="implementation_engineer", resolved_at=now_utc()),
+            Issue(title="客户主数据重复编码", module="客户管理", severity="P4", status="open", description="用于演示客户编码唯一性校验。", owner="implementation_engineer"),
         ]
     )
+    seed_v3_demo_data(db)
+
+
+def seed_v3_demo_data(db: Session) -> None:
+    demo_issues = [
+        Issue(title="销售订单库存不足，暂不能确认", module="库存管理", severity="P2", status="open", description="由演示库存校验流程生成的模拟问题。", owner="implementation_engineer"),
+        Issue(title="CSV 字段错误导致导入失败", module="数据迁移", severity="P3", status="investigating", description="用于演示数据迁移校验和错误行记录。", owner="implementation_engineer"),
+        Issue(title="MySQL 连接失败", module="数据库", severity="P1", status="resolved", root_cause="数据库连接参数错误。", solution="修复 .env 并重启应用。", verification_result="健康检查和 SELECT 1 通过。", owner="implementation_engineer"),
+        Issue(title="Nginx 502 反向代理异常", module="部署联调", severity="P2", status="closed", root_cause="Nginx 上游路径需要确认。", solution="更新反向代理配置并通过健康检查验证。", verification_result="curl http://localhost/health 返回 200。", owner="implementation_engineer", resolved_at=now_utc()),
+        Issue(title="客户主数据重复编码", module="客户管理", severity="P4", status="open", description="用于演示客户编码唯一性校验。", owner="implementation_engineer"),
+    ]
+    existing_titles = set(db.scalars(select(Issue.title)).all())
+    for issue in demo_issues:
+        if issue.title not in existing_titles:
+            db.add(issue)
+
+    existing_project = db.scalar(select(ImplementationProject).where(ImplementationProject.project_code == "ERP-DEMO-2026-001"))
+    if existing_project:
+        return
+
+    customer = db.scalar(select(Customer).where(Customer.customer_code == "CUST-001"))
+    if not customer:
+        return
+
+    project = ImplementationProject(
+        project_code="ERP-DEMO-2026-001",
+        project_name="华南智能制造 ERP 上线项目（模拟）",
+        customer_id=customer.customer_id,
+        contract_amount=Decimal("100000.00"),
+        project_status="implementation",
+        start_date=date.today() - timedelta(days=20),
+        planned_go_live=date.today() + timedelta(days=15),
+    )
+    project.milestones = [
+        PaymentMilestone(milestone_name="签约款", percentage=30, planned_amount=Decimal("30000.00"), status="paid", due_date=date.today() - timedelta(days=15), paid_date=date.today() - timedelta(days=14)),
+        PaymentMilestone(milestone_name="上线款", percentage=40, planned_amount=Decimal("40000.00"), status="invoiced", due_date=date.today() + timedelta(days=5)),
+        PaymentMilestone(milestone_name="验收款", percentage=30, planned_amount=Decimal("30000.00"), status="pending", due_date=date.today() + timedelta(days=35)),
+    ]
+    db.add(project)

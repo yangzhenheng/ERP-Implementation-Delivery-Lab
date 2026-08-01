@@ -93,9 +93,36 @@ CREATE TABLE IF NOT EXISTS issues (
   description TEXT,
   root_cause TEXT,
   solution TEXT,
+  verification_result TEXT,
   owner TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   resolved_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS implementation_projects (
+  project_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_code TEXT NOT NULL UNIQUE,
+  project_name TEXT NOT NULL,
+  customer_id INTEGER NOT NULL,
+  contract_amount NUMERIC NOT NULL,
+  project_status TEXT NOT NULL,
+  start_date TEXT,
+  planned_go_live TEXT,
+  actual_go_live TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(customer_id) REFERENCES customers(customer_id)
+);
+
+CREATE TABLE IF NOT EXISTS payment_milestones (
+  milestone_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL,
+  milestone_name TEXT NOT NULL,
+  percentage INTEGER NOT NULL,
+  planned_amount NUMERIC NOT NULL,
+  status TEXT NOT NULL,
+  due_date TEXT,
+  paid_date TEXT,
+  FOREIGN KEY(project_id) REFERENCES implementation_projects(project_id)
 );
 
 CREATE TABLE IF NOT EXISTS operation_logs (
@@ -110,4 +137,6 @@ CREATE TABLE IF NOT EXISTS operation_logs (
 
 CREATE INDEX IF NOT EXISTS idx_sales_orders_status ON sales_orders(status);
 CREATE INDEX IF NOT EXISTS idx_issues_status ON issues(status);
+CREATE INDEX IF NOT EXISTS idx_projects_customer ON implementation_projects(customer_id);
+CREATE INDEX IF NOT EXISTS idx_payment_milestones_project ON payment_milestones(project_id);
 CREATE INDEX IF NOT EXISTS idx_operation_logs_request ON operation_logs(request_id);
