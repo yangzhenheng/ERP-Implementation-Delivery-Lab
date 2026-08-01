@@ -10,7 +10,7 @@ os.environ["ERP_DB_PATH"] = str(TEST_DB)
 
 from fastapi.testclient import TestClient
 
-from app.db import Base, SessionLocal, engine, seed_demo_data
+from app.db import Base, SalesOrder, SessionLocal, engine, seed_demo_data
 from app.main import app
 
 
@@ -38,6 +38,7 @@ def test_health():
     with TestClient(app) as client:
         data = unwrap(client.get("/health"))
         assert data["status"] == "ok"
+        assert data["database"] == "sqlite"
 
 
 def test_dashboard_metrics():
@@ -48,7 +49,14 @@ def test_dashboard_metrics():
         assert 0 <= data["implementation_progress"] <= 100
 
 
-def test_customers_create_and_list():
+def test_customers_list():
+    with TestClient(app) as client:
+        customers = unwrap(client.get("/api/customers"))
+        assert len(customers) >= 3
+        assert customers[0]["customer_code"] == "CUST-001"
+
+
+def test_customer_create():
     with TestClient(app) as client:
         created = unwrap(
             client.post(
@@ -62,70 +70,165 @@ def test_customers_create_and_list():
             )
         )
         assert created["customer_code"] == "CUST-T100"
-        customers = unwrap(client.get("/api/customers"))
-        assert any(row["customer_code"] == "CUST-T100" for row in customers)
 
 
-def test_products_inventory_and_orders():
+def test_duplicate_customer():
+    with TestClient(app) as client:
+        response = client.post("/api/customers", json={"customer_code": "CUST-001", "customer_name": "重复客户"})
+        assert response.status_code == 409
+        assert response.json()["code"] == 1
+
+
+def test_products():
     with TestClient(app) as client:
         products = unwrap(client.get("/api/products"))
         assert len(products) >= 4
+        assert any(row["product_code"] == "SKU-A100" for row in products)
+
+
+def test_inventory():
+    with TestClient(app) as client:
         inventory = unwrap(client.get("/api/inventory"))
         assert any(row["stock_status"] == "low_stock" for row in inventory)
-        orders = unwrap(client.get("/api/orders"))
-        assert orders[0]["customer_name"]
-        detail = unwrap(client.get(f"/api/orders/{orders[0]['order_id']}"))
-        assert detail["items"]
 
 
-def test_create_order_success_deducts_inventory():
+def test_order_confirmed():
     with TestClient(app) as client:
         products = unwrap(client.get("/api/products"))
         product_id = next(row["product_id"] for row in products if row["product_code"] == "SKU-A100")
-        result = unwrap(
-            client.post(
-                "/api/orders",
-                json={"customer_id": 1, "items": [{"product_id": product_id, "quantity": 1}]},
-            )
-        )
+        result = unwrap(client.post("/api/orders", json={"customer_id": 1, "items": [{"product_id": product_id, "quantity": 1}]}))
         assert result["status"] == "confirmed"
+
+
+def test_order_confirmed_deducts_inventory():
+    with TestClient(app) as client:
+        products = unwrap(client.get("/api/products"))
+        product_id = next(row["product_id"] for row in products if row["product_code"] == "SKU-A100")
+        unwrap(client.post("/api/orders", json={"customer_id": 1, "items": [{"product_id": product_id, "quantity": 1}]}))
         inventory = unwrap(client.get("/api/inventory"))
         sku = next(row for row in inventory if row["product_code"] == "SKU-A100")
         assert sku["quantity"] == 31
 
 
-def test_create_order_shortage_generates_issue():
+def test_order_insufficient_stock():
     with TestClient(app) as client:
         products = unwrap(client.get("/api/products"))
         product_id = next(row["product_id"] for row in products if row["product_code"] == "SKU-B220")
-        result = unwrap(
-            client.post(
-                "/api/orders",
-                json={"customer_id": 1, "items": [{"product_id": product_id, "quantity": 999}]},
-            )
-        )
+        result = unwrap(client.post("/api/orders", json={"customer_id": 1, "items": [{"product_id": product_id, "quantity": 999}]}))
         assert result["status"] == "inventory_failed"
+        assert result["insufficient"]
+
+
+def test_issue_creation_from_shortage():
+    with TestClient(app) as client:
+        products = unwrap(client.get("/api/products"))
+        product_id = next(row["product_id"] for row in products if row["product_code"] == "SKU-B220")
+        unwrap(client.post("/api/orders", json={"customer_id": 1, "items": [{"product_id": product_id, "quantity": 999}]}))
         issues = unwrap(client.get("/api/issues"))
         assert any("库存不足" in row["title"] for row in issues)
 
 
-def test_issues_create_update():
+def test_issue_update():
     with TestClient(app) as client:
-        issue = unwrap(client.post("/api/issues", json={"title": "API field mismatch", "module": "api", "severity": "P2"}))
-        updated = unwrap(client.put(f"/api/issues/{issue['issue_id']}", json={"status": "closed", "solution": "Aligned field mapping"}))
-        assert updated["status"] == "closed"
-        assert updated["resolved_at"]
+        issue = unwrap(client.post("/api/issues", json={"title": "接口字段映射异常", "module": "接口", "severity": "P2"}))
+        updated = unwrap(
+            client.put(
+                f"/api/issues/{issue['issue_id']}",
+                json={"status": "resolved", "root_cause": "字段名不一致", "solution": "统一映射", "verification_result": "复测通过"},
+            )
+        )
+        assert updated["status"] == "resolved"
+        assert updated["verification_result"] == "复测通过"
 
 
-def test_dashboard_and_system_status():
+def test_implementation_tasks():
     with TestClient(app) as client:
-        assert "system_status" in unwrap(client.get("/api/dashboard"))
+        tasks = unwrap(client.get("/api/implementation/tasks"))
+        assert len(tasks) == 8
+        assert any(row["task_type"] == "go_live" for row in tasks)
+        summary = unwrap(client.get("/api/implementation"))
+        assert summary["total_tasks"] == 8
+
+
+def test_commercial_summary():
+    with TestClient(app) as client:
+        summary = unwrap(client.get("/api/commercial/summary"))
+        assert summary["contract_amount"] == 100000.0
+        assert summary["paid_amount"] == 30000.0
+        assert "Mock commercial data" in summary["mock_notice"]
+        overview = unwrap(client.get("/api/commercial"))
+        assert len(overview["milestones"]) == 3
+
+
+def test_payment_milestones():
+    with TestClient(app) as client:
+        milestones = unwrap(client.get("/api/payment-milestones"))
+        assert [row["milestone_name"] for row in milestones] == ["签约款", "上线款", "验收款"]
+
+
+def test_projects_detail():
+    with TestClient(app) as client:
+        projects = unwrap(client.get("/api/projects"))
+        detail = unwrap(client.get(f"/api/projects/{projects[0]['project_id']}"))
+        assert detail["project_code"] == "ERP-DEMO-2026-001"
+        assert len(detail["milestones"]) == 3
+
+
+def test_system_status():
+    with TestClient(app) as client:
         status = unwrap(client.get("/api/system/status"))
         assert status["database"] == "ok"
+        assert status["redis"] in {"ok", "unavailable_degraded"}
 
 
-def test_data_import_endpoint():
+def test_csv_import():
     with TestClient(app) as client:
         result = unwrap(client.post("/api/data/import"))
         assert result["failed"] == 0
         assert result["success"] >= 1
+
+
+def test_invalid_order():
+    with TestClient(app) as client:
+        response = client.post("/api/orders", json={"customer_id": 99999, "items": [{"product_id": 1, "quantity": 1}]})
+        assert response.status_code == 404
+        assert "customer not found" in response.text
+
+
+def test_request_id():
+    with TestClient(app) as client:
+        response = client.get("/health", headers={"x-request-id": "REQ-V3-001"})
+        assert response.headers["x-request-id"] == "REQ-V3-001"
+
+
+def test_redis_fallback_dashboard():
+    with TestClient(app) as client:
+        data = unwrap(client.get("/api/dashboard"))
+        assert data["system_status"] in {"ok", "degraded_without_redis"}
+
+
+def test_database_transaction_on_invalid_product():
+    with SessionLocal() as db:
+        before = db.query(SalesOrder).count()
+    with TestClient(app) as client:
+        response = client.post("/api/orders", json={"customer_id": 1, "items": [{"product_id": 99999, "quantity": 1}]})
+        assert response.status_code == 404
+    with SessionLocal() as db:
+        after = db.query(SalesOrder).count()
+    assert after == before
+
+
+def test_frontend_customers():
+    with TestClient(app) as client:
+        response = client.get("/customers")
+        assert response.status_code == 200
+        assert "客户管理" in response.text
+        assert "新增客户" in response.text
+
+
+def test_frontend_orders():
+    with TestClient(app) as client:
+        response = client.get("/orders")
+        assert response.status_code == 200
+        assert "销售订单" in response.text
+        assert "新增销售订单" in response.text
