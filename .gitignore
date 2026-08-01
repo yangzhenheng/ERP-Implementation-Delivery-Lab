@@ -7,7 +7,7 @@ __pycache__/
 *.db
 *.sqlite
 logs/*.log
-backups/*.sql
+backups/
 *.dump
 .idea/
 .vscode/
