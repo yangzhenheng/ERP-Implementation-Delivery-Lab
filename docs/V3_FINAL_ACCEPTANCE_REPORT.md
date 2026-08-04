@@ -1,36 +1,72 @@
-# V3 最终验收报告
+# V3.1 最终验收报告
 
-时间：2026-08-01 15:35:43 +08:00
+## CI Verified Final Result
 
-版本：3.0.0
+Status: **CI VERIFIED**
 
-项目：制造业 ERP 实施交付实验室 V3
+- Date: 2026-08-04
+- PR: [#1](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/pull/1)
+- Commit: `6222b6049924cdbd218ff5b58555bb9158522db3`
+- CI run: [30896543782](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543782)
+- Full-stack run: [30896543839](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543839)
+
+| Area | Result | Evidence |
+| --- | --- | --- |
+| Unit tests | PASS | Python 3.11 and 3.12 jobs passed |
+| SQLite E2E | PASS | `4 passed` |
+| Docker services | PASS | mysql, redis, app, nginx each running and healthy |
+| Nginx/FastAPI | PASS | normal 200/200 |
+| MySQL | PASS | business queries and real writes passed |
+| Redis recovery | PASS | degraded mode and recovery passed |
+| Backup/Restore | PASS | restored counts plus three application HTTP/JSON checks |
+| Nginx 502 recovery | PASS | fault 502/200, recovery 200/200, no config diff |
+| SQL Server | PASS | real container, dynamic sqlcmd, imports, queries, mutations |
+| Full-stack E2E | PASS | `4 passed` |
+| Linux runtime | PASS | container runtime evidence passed |
+| Credential safety | PASS | generated passwords masked; no secret artifacts uploaded |
+
+Artifacts: `erp-full-stack-artifacts`, `e2e-sqlite-screenshots`, `sqlserver-lab-artifacts`.
+
+Local Windows remains **BLOCKED** because Docker is unavailable. CI evidence is reported separately and does not impersonate local Windows evidence.
+
+Final grade: **C. Stronger junior ERP/software implementation engineer interview project.**
+
+The historical local report below is retained as the earlier machine-local record and is superseded by this section for release readiness.
+
+时间：2026-08-04 12:58:47 +08:00
+
+版本：3.1.0
+
+项目：制造业 ERP 实施交付实验室 V3.1
 
 ## 验收结果
 
-| 项目 | 状态 | 证据 |
-|---|---|---|
-| FastAPI | PASS | `python scripts/verify_v3.py`，`/health` HTTP 200 |
-| pytest | PASS | `pytest -q` -> `24 passed` |
-| ERP frontend | PASS | `/dashboard`、`/customers`、`/orders`、`/commercial` HTTP 200 |
-| SQLite | PASS | 本地测试库和开发库可运行 |
-| MySQL | NOT VERIFIED | 当前本机无 Docker/MySQL 运行环境 |
-| Redis | NOT VERIFIED | 当前本机无 Docker/Redis 运行环境 |
-| Nginx | NOT VERIFIED | 当前本机无 Docker/Nginx 运行环境 |
-| Docker | NOT VERIFIED | `docker` 命令不存在 |
-| CSV migration | PASS | `python scripts/import_data.py --folder data/import` -> `success=8, failed=0`；API 测试覆盖 |
-| Backup | NOT VERIFIED | 缺 `mysqldump` 和 MySQL 服务 |
-| Restore | NOT VERIFIED | 缺 `mysql` 和 MySQL 服务 |
-| Network lab | PASS | `scripts/network_check.py` 已运行并真实报告端口状态 |
-| SQL Server | NOT VERIFIED | 当前本机无 Docker，未启动 SQL Server lab |
-| Oracle/DB2 docs | PASS | `docs/DATABASE_COMPATIBILITY_LAB.md` 已覆盖基础方言认知 |
-| Commercial module | PASS | `GET /api/commercial/summary`、`GET /api/payment-milestones` 和 `/commercial` 已测试 |
-| Fault recovery | NOT VERIFIED | Docker/Nginx 502 故障注入依赖 Docker 环境 |
+| 项目 | 状态 | 实际命令 | 关键输出摘要 |
+|---|---|---|---|
+| FastAPI | PASS | `python scripts/verify_v3.py --base-url http://127.0.0.1:8000` | `/health` HTTP 200 |
+| pytest | PASS | `pytest -q` | `24 passed, 4 skipped` |
+| ERP frontend | PASS | `verify_v3.py` 默认模式 | `/dashboard`、`/customers`、`/orders`、`/commercial` HTTP 200 |
+| SQLite | PASS | `pytest -q` | 本地 SQLite 测试库可创建、写入、查询 |
+| Docker | BLOCKED | `docker version` / `docker compose version` / `docker info` | `docker` 命令不存在；Docker Desktop 程序未找到 |
+| MySQL | BLOCKED | 未执行 MySQL 容器查询 | Docker CLI 不存在 |
+| Redis | BLOCKED | 未执行 `redis-cli ping` | Docker CLI 不存在 |
+| Nginx | BLOCKED | 未执行 Nginx 入口 curl 验证 | Docker CLI 不存在 |
+| CSV migration | PASS | `python scripts/import_data.py --folder data/import` | 干净临时库 `success=8, failed=0, skipped=0` |
+| Backup | BLOCKED | `scripts/backup_mysql_container.ps1` 未执行 | Docker/MySQL 不可用 |
+| Restore | BLOCKED | `scripts/restore_mysql_container.ps1` 未执行 | Docker/MySQL 不可用 |
+| Network lab | BLOCKED | `python scripts/network_check.py` | 脚本可运行；80/3306/6379 不可达 |
+| SQL Server | BLOCKED | 未启动 SQL Server lab | Docker CLI 不存在 |
+| Oracle/DB2 docs | PASS | 文档检查 | 基础方言认知已覆盖，不声称精通 |
+| Commercial module | PASS | `pytest -q` / `verify_v3.py` | 商务 API 和 `/commercial` 页面通过 |
+| Nginx 502 recovery | BLOCKED | 故障脚本未执行 | Docker/Nginx 不可用 |
+| E2E smoke test | NOT VERIFIED | `pytest tests/e2e -q` | `4 skipped`；Playwright 安装失败 |
+| Linux runtime | BLOCKED | `wsl --status` / `wsl -l -v` | WSL 状态不可用，Docker 容器不可用 |
 
-## V3 API 验证输出
+## 实际验证输出摘要
+
+### 默认 V3 验证
 
 ```text
-== HTTP API ==
 [PASS] /health - HTTP 200
 [PASS] /api/dashboard - HTTP 200
 [PASS] /api/customers - HTTP 200
@@ -39,58 +75,60 @@
 [PASS] /api/orders - HTTP 200
 [PASS] /api/issues - HTTP 200
 [PASS] /api/implementation - HTTP 200
-[PASS] /api/implementation/tasks - HTTP 200
 [PASS] /api/commercial - HTTP 200
-[PASS] /api/commercial/summary - HTTP 200
 [PASS] /api/system/status - HTTP 200
-== Frontend ==
 [PASS] /dashboard - HTTP 200
 [PASS] /customers - HTTP 200
 [PASS] /orders - HTTP 200
 [PASS] /commercial - HTTP 200
-== TCP ==
 [PASS] TCP FastAPI local - localhost:8000
 [SKIP] TCP Nginx Docker - localhost:80 unavailable
 [SKIP] TCP MySQL Docker - localhost:3306 unavailable
 [SKIP] TCP Redis Docker - localhost:6379 unavailable
+default_exit=0
 ```
 
-## 网络检查输出
+### 严格全栈验证
 
 ```text
-[PASS] DNS localhost -> 127.0.0.1
-[FAIL] TCP localhost:80 timed out
-[PASS] TCP localhost:8000
-[FAIL] TCP localhost:3306 timed out
-[FAIL] TCP localhost:6379 timed out
-[FAIL] HTTP http://localhost/health timed out
-[PASS] HTTP http://localhost:8000/health HTTP 200
+[FAIL] /health - [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+[FAIL] TCP Nginx Docker - localhost:80 unavailable: timed out
+[FAIL] TCP MySQL Docker - localhost:3306 unavailable: timed out
+[FAIL] TCP Redis Docker - localhost:6379 unavailable: timed out
+strict_exit=1
 ```
 
-解释：80、3306、6379 依赖 Docker/Nginx/MySQL/Redis，当前本机没有 Docker 环境，因此失败是预期真实结果，不应写成通过。
+严格模式要求 Nginx/MySQL/Redis 端口全部可达。当前 Docker 不可用，因此不能通过。
 
-## 当前可面试演示范围
+### Playwright E2E
 
-- ERP UI 打开和 Dashboard 查看。
-- UI 新增客户。
-- UI 创建订单。
-- 库存充足扣减库存。
-- 库存不足生成 Issue。
-- Issue 状态流转。
-- CSV 数据迁移。
-- 商务里程碑展示。
-- 网络排障脚本演示。
-- SQL Server / Oracle / DB2 方言认知讲解。
-- Swagger 作为接口联调工具说明。
+```text
+python -m pip install playwright pytest-playwright
+```
 
-## 当前未验证内容
+清华源返回 HTTP 403。
 
-- Docker Compose 全栈真实运行。
-- MySQL 容器表结构和数据量查询。
-- Redis `PONG`。
-- Nginx 经 `http://localhost` 转发。
-- MySQL backup/restore 实跑。
-- SQL Server 容器启动和 `sqlcmd` 执行。
-- Nginx 502 故障注入和恢复。
+```text
+python -m pip install --index-url https://pypi.org/simple playwright pytest-playwright
+```
 
-结论：V3 已适合初级 ERP / 软件实施工程师面试投递，用于展示实施流程、SQL、数据迁移、后台操作、问题闭环、商务节点、网络排障和诚实的验证边界。
+官方 PyPI 出现 SSL EOF 错误。
+
+因此：
+
+```text
+pytest tests/e2e -q -> 4 skipped
+```
+
+## 已知限制
+
+- 当前 Windows 环境没有 Docker CLI，且 `C:\Program Files\Docker\Docker\Docker Desktop.exe` 不存在。
+- 当前 WSL 不能提供可运行 Linux 发行版证据。
+- 当前无法下载 Playwright。
+- 未创建 PR、未合并 main、未创建 `v3.1.0` tag/release，因为全栈验收未通过。
+
+## 最终结论
+
+结论：**B. 可作为初级 ERP / 软件实施工程师面试项目**。
+
+尚不能评为 **C. 已达到较强初级 ERP / 软件实施工程师面试项目**。原因是 Docker、MySQL、Redis、Nginx、Backup/Restore、SQL Server、Nginx 502 recovery、Linux runtime 和 E2E 均未真实通过。

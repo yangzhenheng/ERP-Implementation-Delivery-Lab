@@ -10,6 +10,8 @@ os.environ["ERP_DB_PATH"] = str(TEST_DB)
 
 from fastapi.testclient import TestClient
 
+import app.db as db_module
+import app.main as main_module
 from app.db import Base, SalesOrder, SessionLocal, engine, seed_demo_data
 from app.main import app
 
@@ -39,6 +41,33 @@ def test_health():
         data = unwrap(client.get("/health"))
         assert data["status"] == "ok"
         assert data["database"] == "sqlite"
+
+
+def test_mysql_url_preserves_special_character_password(monkeypatch):
+    password = "A@b:c/d?e#f%2026"
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("APP_ENV", "demo")
+    monkeypatch.setenv("DB_USER", "erp_user")
+    monkeypatch.setenv("DB_PASSWORD", password)
+    monkeypatch.setenv("DB_HOST", "mysql")
+    monkeypatch.setenv("DB_PORT", "3306")
+    monkeypatch.setenv("DB_NAME", "erp_demo")
+
+    url = db_module._database_url()
+
+    assert url.drivername == "mysql+pymysql"
+    assert url.username == "erp_user"
+    assert url.password == password
+    assert url.host == "mysql"
+    assert url.database == "erp_demo"
+    assert url.query["charset"] == "utf8mb4"
+
+
+def test_explicit_database_url_remains_compatible(monkeypatch):
+    explicit_url = "sqlite:///explicit-test.db"
+    monkeypatch.setenv("DATABASE_URL", explicit_url)
+
+    assert db_module._database_url() == explicit_url
 
 
 def test_dashboard_metrics():
@@ -98,6 +127,16 @@ def test_order_confirmed():
         product_id = next(row["product_id"] for row in products if row["product_code"] == "SKU-A100")
         result = unwrap(client.post("/api/orders", json={"customer_id": 1, "items": [{"product_id": product_id, "quantity": 1}]}))
         assert result["status"] == "confirmed"
+
+
+def test_generated_order_numbers_are_unique_for_rapid_requests():
+    with TestClient(app) as client:
+        products = unwrap(client.get("/api/products"))
+        product_id = next(row["product_id"] for row in products if row["product_code"] == "SKU-A100")
+        payload = {"customer_id": 1, "items": [{"product_id": product_id, "quantity": 1}]}
+        first = unwrap(client.post("/api/orders", json=payload))
+        second = unwrap(client.post("/api/orders", json=payload))
+        assert first["order_no"] != second["order_no"]
 
 
 def test_order_confirmed_deducts_inventory():
@@ -205,6 +244,24 @@ def test_redis_fallback_dashboard():
     with TestClient(app) as client:
         data = unwrap(client.get("/api/dashboard"))
         assert data["system_status"] in {"ok", "degraded_without_redis"}
+
+
+def test_core_apis_continue_when_redis_is_unavailable(monkeypatch):
+    monkeypatch.setattr(main_module, "redis_available", lambda: False)
+    with TestClient(app) as client:
+        dashboard = unwrap(client.get("/api/dashboard"))
+        assert dashboard["system_status"] == "degraded_without_redis"
+        assert client.get("/api/customers").status_code == 200
+        assert client.get("/api/orders").status_code == 200
+        status = unwrap(client.get("/api/system/status"))
+        assert status["redis"] == "unavailable_degraded"
+
+
+def test_system_status_reports_redis_recovery(monkeypatch):
+    monkeypatch.setattr(main_module, "redis_available", lambda: True)
+    with TestClient(app) as client:
+        status = unwrap(client.get("/api/system/status"))
+        assert status["redis"] == "ok"
 
 
 def test_database_transaction_on_invalid_product():

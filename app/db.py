@@ -15,6 +15,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    URL,
     create_engine,
     func,
     select,
@@ -30,7 +31,7 @@ def now_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _database_url() -> str:
+def _database_url():
     if os.getenv("DATABASE_URL"):
         return os.environ["DATABASE_URL"]
 
@@ -41,7 +42,15 @@ def _database_url() -> str:
         host = os.getenv("DB_HOST", "127.0.0.1")
         port = os.getenv("DB_PORT", "3306")
         name = os.getenv("DB_NAME", "erp_demo")
-        return f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}?charset=utf8mb4"
+        return URL.create(
+            drivername="mysql+pymysql",
+            username=user,
+            password=password,
+            host=host,
+            port=int(port),
+            database=name,
+            query={"charset": "utf8mb4"},
+        )
 
     db_path = Path(os.getenv("ERP_DB_PATH", BASE_DIR / "data" / "erp_demo.db"))
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -50,11 +59,15 @@ def _database_url() -> str:
 
 DATABASE_URL = _database_url()
 engine_kwargs = {"pool_pre_ping": True}
-if DATABASE_URL.startswith("sqlite"):
+if str(DATABASE_URL).startswith("sqlite"):
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 
 engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
+
+
+def database_backend() -> str:
+    return "mysql" if str(DATABASE_URL).startswith("mysql") else "sqlite"
 
 
 class Base(DeclarativeBase):

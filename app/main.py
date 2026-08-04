@@ -18,7 +18,6 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from .db import (
-    DATABASE_URL,
     Customer,
     ImplementationTask,
     ImplementationProject,
@@ -31,6 +30,7 @@ from .db import (
     SalesOrder,
     SalesOrderItem,
     Warehouse,
+    database_backend,
     get_session,
     init_db,
     now_utc,
@@ -67,8 +67,8 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(
-    title="制造业 ERP 实施交付实验室 V3",
-    version="3.0.0",
+    title="制造业 ERP 实施交付实验室 V3.1",
+    version="3.1.0",
     description="面向国内 ERP / 软件实施工程师面试的个人实施交付演示项目。业务数据均为模拟数据，不代表真实客户生产环境。",
     lifespan=lifespan,
 )
@@ -176,7 +176,7 @@ def health(db: Session = Depends(get_session)):
             "status": "ok",
             "service": "制造业 ERP 实施交付实验室",
             "app_env": os.getenv("APP_ENV", "dev"),
-            "database": "mysql" if DATABASE_URL.startswith("mysql") else "sqlite",
+            "database": database_backend(),
         }
     )
 
@@ -316,7 +316,7 @@ def create_order(payload: SalesOrderCreate, request: Request, db: Session = Depe
     if not customer:
         raise HTTPException(status_code=404, detail="customer not found")
 
-    order_no = payload.order_no or f"SO{now_utc().strftime('%Y%m%d%H%M%S')}"
+    order_no = payload.order_no or f"SO{now_utc().strftime('%Y%m%d%H%M%S%f')}"
     if db.scalar(select(SalesOrder).where(SalesOrder.order_no == order_no)):
         raise HTTPException(status_code=409, detail="order_no already exists")
 

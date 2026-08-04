@@ -1,5 +1,18 @@
 # 更新日志
 
+## 3.1.0 - 2026-08-04
+
+- 增加严格全栈验证模式，`--require-full-stack` 下不允许 Docker 端口 SKIP。
+- 增加容器内 MySQL backup/restore PowerShell 脚本。
+- 增加可恢复 Nginx 502 故障注入、验证和修复脚本。
+- 增加 Playwright E2E 冒烟测试文件，默认跳过，需 `RUN_E2E=1` 和浏览器依赖。
+- 增加 V3.1 阻塞证据、Linux runtime 证据和截图清单。
+- 修复 Docker Compose 服务健康状态的整体文本误判，改为逐服务解析 JSON 并检查 running/healthy。
+- 增加跨平台 Nginx 502 严格故障与恢复实验、真实 SQL Server runner、MySQL 恢复后应用 HTTP 验证。
+- 修复快速连续订单的默认单号冲突，并将本地/CI 验收身份分开记录。
+- GitHub Actions 已通过 Python 3.11/3.12、SQLite E2E、ERP 全栈、SQL Server 和 Linux runtime 验证。
+- 当前 Windows 本机 Docker 状态仍为 BLOCKED；V3.1 总体状态为 CI VERIFIED。
+
 ## 3.0.0 - 2026-08-01
 
 - 增加轻量 ERP 后台页面，主演示可通过 UI 完成客户新增、订单创建、库存校验、问题工单和项目商务查看。

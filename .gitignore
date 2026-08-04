@@ -7,8 +7,10 @@ __pycache__/
 *.db
 *.sqlite
 logs/*.log
+artifacts/
 backups/
 *.dump
+*.v3_502_backup
 .idea/
 .vscode/
 node_modules/
