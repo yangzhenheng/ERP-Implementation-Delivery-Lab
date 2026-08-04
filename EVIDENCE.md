@@ -1,5 +1,25 @@
 # 项目验证证据
 
+## V3.1 CI Verified Evidence
+
+Status: **CI VERIFIED**
+
+- Date: 2026-08-04
+- PR: [#1](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/pull/1)
+- Commit: `6222b6049924cdbd218ff5b58555bb9158522db3`
+- CI run: [30896543782](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543782)
+- Full-stack run: [30896543839](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543839)
+
+Passed jobs: `Python tests (3.11)`, `Python tests (3.12)`, `unit-tests (3.11)`, `unit-tests (3.12)`, `e2e-sqlite`, `erp-full-stack`, and `sqlserver-lab`.
+
+Verified evidence includes SQLite E2E (`4 passed`), per-service Docker health, MySQL backup/restore plus three application HTTP checks, strict Nginx 502/200 recovery, full-stack E2E (`4 passed`), SQL Server imports/queries/mutations, and Linux runtime.
+
+Artifacts: `erp-full-stack-artifacts`, `e2e-sqlite-screenshots`, `sqlserver-lab-artifacts`.
+
+Credential values are masked as `***` in successful Actions logs. No `.env`, backup SQL, token, or password is uploaded.
+
+Local Windows remains **BLOCKED** because Docker is unavailable. The older local evidence below is retained for traceability and does not override CI VERIFIED.
+
 日期：2026-08-04
 
 版本：3.1.0

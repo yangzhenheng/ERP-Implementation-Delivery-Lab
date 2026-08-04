@@ -2,6 +2,27 @@
 
 [![CI](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/workflows/ci.yml/badge.svg)](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/workflows/ci.yml)
 
+## Authoritative V3.1 Acceptance Status
+
+Status: **CI VERIFIED** on 2026-08-04. The historical local-only evidence below is retained for traceability but is superseded by this section for release readiness.
+
+- PR: [#1](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/pull/1)
+- Verified commit: `6222b6049924cdbd218ff5b58555bb9158522db3`
+- CI run: [CI](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543782)
+- Full-stack run: [Full Stack Acceptance](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543839)
+- Passed: Python 3.11/3.12 tests, SQLite E2E (`4 passed`), Docker service health, Nginx/FastAPI, MySQL, Redis degraded recovery, backup/restore plus application HTTP checks, Nginx 502 recovery, full-stack E2E (`4 passed`), SQL Server, and Linux container runtime.
+- Artifacts: `erp-full-stack-artifacts`, `e2e-sqlite-screenshots`, `sqlserver-lab-artifacts`.
+- Local Windows status: **BLOCKED** because Docker is unavailable on this machine. CI success is not presented as local Windows success.
+- Overall grade: **C**, a stronger junior ERP/software implementation engineer interview project, based on real required CI jobs passing.
+
+Strict acceptance commands:
+
+```bash
+python scripts/run_v31_acceptance.py --local --skip-sqlserver --skip-e2e --output-dir artifacts/v31-preflight
+python scripts/run_v31_acceptance.py --ci --skip-sqlserver --keep-services
+python scripts/sqlserver_lab.py --output-dir artifacts/v31
+```
+
 ERP实施｜MySQL｜SQL Server｜Linux｜Docker｜Nginx｜Redis｜数据迁移｜故障排查｜培训｜上线验收
 
 这是面向国内 ERP / 软件实施工程师岗位面试的个人实战项目。项目数据均为模拟数据，不代表真实客户生产系统。

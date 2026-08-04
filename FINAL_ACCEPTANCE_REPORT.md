@@ -1,5 +1,34 @@
 # 最终验收报告
 
+## V3.1 Authoritative Final Acceptance
+
+Status: **CI VERIFIED**
+
+- Acceptance date: 2026-08-04
+- PR: [#1](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/pull/1)
+- Verified commit: `6222b6049924cdbd218ff5b58555bb9158522db3`
+- CI: [Python checks](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543782)
+- CI: [full-stack acceptance](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543839)
+
+Final verified results:
+
+- Local unit suite: `44 passed, 4 skipped`; the browser E2E tests are intentionally skipped without `RUN_E2E=1`.
+- SQLite E2E and full-stack E2E: `4 passed` each.
+- Docker Compose: mysql, redis, app, and nginx each running and healthy.
+- Nginx fault lab: normal 200/200, fault 502/200, recovery 200/200, no config diff.
+- MySQL backup/restore: restored table counts plus `/health`, `/api/customers`, and `/api/dashboard` HTTP/JSON checks.
+- SQL Server: real container, dynamic `sqlcmd`, SQL imports, counts, UPDATE, and DELETE.
+- Linux container runtime: PASS.
+- Generated credentials: masked in Actions logs.
+
+Artifacts: `erp-full-stack-artifacts`, `e2e-sqlite-screenshots`, `sqlserver-lab-artifacts`.
+
+Local Windows remains **BLOCKED** because Docker is unavailable. CI evidence does not claim local Windows Docker success.
+
+Final grade: **C. Stronger junior ERP/software implementation engineer interview project.**
+
+The historical local-only report below is retained for traceability and is superseded by this section for release readiness.
+
 日期：2026-08-04
 
 版本：3.1.0

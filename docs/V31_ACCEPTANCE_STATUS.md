@@ -4,44 +4,53 @@ Date: 2026-08-04
 
 Version: 3.1.0
 
+## CI Verification
+
+Status: CI VERIFIED
+
+- PR: [#1](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/pull/1)
+- Verified commit: `6222b6049924cdbd218ff5b58555bb9158522db3`
+- CI run: [30896543782](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543782)
+- Full-stack run: [30896543839](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543839)
+- CI time: 2026-08-04 09:29-09:31 UTC
+
+Passed jobs:
+
+- `Python tests (3.11)`
+- `Python tests (3.12)`
+- `unit-tests (3.11)`
+- `unit-tests (3.12)`
+- `e2e-sqlite`
+- `erp-full-stack`
+- `sqlserver-lab`
+
+Verified behavior:
+
+- Docker Compose status is parsed per service; MySQL, Redis, app, and Nginx must each be running and healthy.
+- SQLite E2E and full-stack E2E each reported `4 passed` with no skipped tests.
+- Nginx fault verification reported 502/200; recovery reported 200/200 and no config diff.
+- MySQL backup/restore restored required table counts and passed `/health`, `/api/customers`, and `/api/dashboard` HTTP/JSON checks.
+- SQL Server dynamically detected `sqlcmd`, executed all three SQL files, verified required table counts, and verified UPDATE/DELETE effects.
+- Generated CI credentials were masked as `***` in logs.
+
+Artifacts:
+
+- `erp-full-stack-artifacts`
+- `e2e-sqlite-screenshots`
+- `sqlserver-lab-artifacts`
+
 ## Local Windows Verification
 
 Status: LOCAL WINDOWS BLOCKED
 
-Verified locally:
-
+- `pytest -q`: PASS, `44 passed` and `4 skipped`
 - `python -m compileall app scripts tests`: PASS
-- `pytest -q`: PASS, 28 passed and 4 E2E tests skipped
-- `.env` safety: PASS, `.env` is ignored and not present in git status
-- `python scripts/run_v31_acceptance.py --local`: non-zero by design because Docker is unavailable
+- `.env` safety: PASS
+- Docker CLI: unavailable
+- V3.1 local preflight: non-zero as required, with Docker-related checks marked BLOCKED
 
-Blocked locally:
+CI VERIFIED does not imply local Windows Docker verification. Local artifacts remain ignored by git.
 
-- Docker CLI is not present in PATH.
-- Docker Compose, MySQL, Redis, Nginx, SQL Server, backup/restore, Nginx 502 recovery, full-stack E2E, and Linux container runtime cannot be truthfully marked PASS on this machine.
-- Playwright installation from official PyPI failed with a TLS EOF error; HTTPS mirror installation returned HTTP 403. No insecure `trusted-host` workaround was used.
+## Final Grade
 
-Local artifact output:
-
-- `artifacts/v31/acceptance.json`
-- `artifacts/v31/acceptance.log`
-- `artifacts/v31/V31_ACCEPTANCE_REPORT.md`
-
-These files are intentionally ignored by git because they are machine-local run artifacts.
-
-## CI Verification
-
-Status: NOT VERIFIED until GitHub Actions runs.
-
-The workflow `.github/workflows/full-stack-acceptance.yml` adds separate jobs for:
-
-- unit tests on Python 3.11 and 3.12
-- SQLite browser E2E
-- Docker Compose full-stack ERP acceptance
-- SQL Server lab
-
-CI evidence must be recorded as CI VERIFIED only after those jobs pass. CI output must not be described as LOCAL WINDOWS VERIFIED.
-
-## Current Final Grade
-
-Current grade: B. Suitable as a junior ERP/software implementation engineer project, but not yet upgraded to C until full-stack Docker/CI evidence passes.
+Grade: C. The project has real full-stack CI evidence and is suitable as a stronger junior ERP/software implementation engineer interview project.

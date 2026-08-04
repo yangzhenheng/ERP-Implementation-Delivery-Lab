@@ -1,5 +1,38 @@
 # V3.1 最终验收报告
 
+## CI Verified Final Result
+
+Status: **CI VERIFIED**
+
+- Date: 2026-08-04
+- PR: [#1](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/pull/1)
+- Commit: `6222b6049924cdbd218ff5b58555bb9158522db3`
+- CI run: [30896543782](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543782)
+- Full-stack run: [30896543839](https://github.com/yangzhenheng/ERP-Implementation-Delivery-Lab/actions/runs/30896543839)
+
+| Area | Result | Evidence |
+| --- | --- | --- |
+| Unit tests | PASS | Python 3.11 and 3.12 jobs passed |
+| SQLite E2E | PASS | `4 passed` |
+| Docker services | PASS | mysql, redis, app, nginx each running and healthy |
+| Nginx/FastAPI | PASS | normal 200/200 |
+| MySQL | PASS | business queries and real writes passed |
+| Redis recovery | PASS | degraded mode and recovery passed |
+| Backup/Restore | PASS | restored counts plus three application HTTP/JSON checks |
+| Nginx 502 recovery | PASS | fault 502/200, recovery 200/200, no config diff |
+| SQL Server | PASS | real container, dynamic sqlcmd, imports, queries, mutations |
+| Full-stack E2E | PASS | `4 passed` |
+| Linux runtime | PASS | container runtime evidence passed |
+| Credential safety | PASS | generated passwords masked; no secret artifacts uploaded |
+
+Artifacts: `erp-full-stack-artifacts`, `e2e-sqlite-screenshots`, `sqlserver-lab-artifacts`.
+
+Local Windows remains **BLOCKED** because Docker is unavailable. CI evidence is reported separately and does not impersonate local Windows evidence.
+
+Final grade: **C. Stronger junior ERP/software implementation engineer interview project.**
+
+The historical local report below is retained as the earlier machine-local record and is superseded by this section for release readiness.
+
 时间：2026-08-04 12:58:47 +08:00
 
 版本：3.1.0
