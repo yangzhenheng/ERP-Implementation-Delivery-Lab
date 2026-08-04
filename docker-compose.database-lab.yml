@@ -11,10 +11,15 @@ services:
       - sqlserver_data:/var/opt/mssql
       - ./sql/sqlserver:/sqlserver-lab:ro
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\""]
+      test:
+        [
+          "CMD-SHELL",
+          "SQLCMD=$$(command -v /opt/mssql-tools18/bin/sqlcmd || command -v /opt/mssql-tools/bin/sqlcmd) && $$SQLCMD -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\"",
+        ]
       interval: 10s
       timeout: 5s
       retries: 20
+      start_period: 30s
 
 volumes:
   sqlserver_data:
