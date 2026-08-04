@@ -1,6 +1,8 @@
 param(
     [string]$BaseUrl = "http://localhost",
-    [string]$DirectUrl = "http://localhost:8000"
+    [string]$DirectUrl = "http://localhost:8000",
+    [ValidateSet("Fault", "Recovery")]
+    [string]$Mode = "Fault"
 )
 
 $ErrorActionPreference = "Stop"
@@ -23,10 +25,12 @@ $directStatus = Get-StatusCode "$DirectUrl/health"
 Write-Output "nginx_health_status=$nginxStatus"
 Write-Output "fastapi_direct_status=$directStatus"
 
-if ($directStatus -ne 200) {
-    throw "FastAPI direct health must remain 200 during Nginx 502 fault."
+if ($Mode -eq "Fault") {
+    if ($nginxStatus -ne 502 -or $directStatus -ne 200) {
+        throw "Fault verification requires Nginx=502 and FastAPI=200; got Nginx=$nginxStatus FastAPI=$directStatus."
+    }
+} elseif ($nginxStatus -ne 200 -or $directStatus -ne 200) {
+    throw "Recovery verification requires Nginx=200 and FastAPI=200; got Nginx=$nginxStatus FastAPI=$directStatus."
 }
 
-if ($nginxStatus -notin @(200, 502)) {
-    throw "Unexpected Nginx health status: $nginxStatus"
-}
+Write-Output "$Mode verification passed."
