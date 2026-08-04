@@ -98,16 +98,11 @@ jobs:
           print('Ci1!' + ''.join(secrets.choice(chars) for _ in range(24)))
           PY
           )"
-          SQLSERVER_SA_PASSWORD="$(python - <<'PY'
-          import secrets, string
-          chars = string.ascii_letters + string.digits
-          print('Ci1!' + ''.join(secrets.choice(chars) for _ in range(24)))
-          PY
-          )"
+          echo "::add-mask::${DB_PASSWORD}"
+          echo "::add-mask::${MYSQL_ROOT_PASSWORD}"
           {
             echo "DB_PASSWORD=${DB_PASSWORD}"
             echo "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}"
-            echo "SQLSERVER_SA_PASSWORD=${SQLSERVER_SA_PASSWORD}"
           } >> "$GITHUB_ENV"
           cat > .env <<EOF
           APP_ENV=demo
@@ -119,7 +114,6 @@ jobs:
           MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
           REDIS_HOST=redis
           REDIS_PORT=6379
-          SQLSERVER_SA_PASSWORD=${SQLSERVER_SA_PASSWORD}
           EOF
       - name: Run V3.1 full stack acceptance
         run: python scripts/run_v31_acceptance.py --ci --skip-sqlserver --keep-services
@@ -160,6 +154,7 @@ jobs:
           print('Ci1!' + ''.join(secrets.choice(chars) for _ in range(24)))
           PY
           )"
+          echo "::add-mask::${SQLSERVER_SA_PASSWORD}"
           echo "SQLSERVER_SA_PASSWORD=${SQLSERVER_SA_PASSWORD}" >> "$GITHUB_ENV"
       - name: Run real SQL Server acceptance lab
         run: python scripts/sqlserver_lab.py --output-dir artifacts/v31
