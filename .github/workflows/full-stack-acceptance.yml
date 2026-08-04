@@ -47,7 +47,11 @@ jobs:
       - name: Run SQLite browser E2E
         env:
           RUN_E2E: "1"
-        run: pytest tests/e2e -q
+        run: |
+          mkdir -p artifacts/e2e
+          pytest tests/e2e | tee artifacts/e2e/pytest.txt
+          grep -Eq "4 passed" artifacts/e2e/pytest.txt
+          ! grep -Eq "skipped" artifacts/e2e/pytest.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -84,20 +88,20 @@ jobs:
         run: |
           DB_PASSWORD="$(python - <<'PY'
           import secrets, string
-          chars = string.ascii_letters + string.digits + '@#%!'
-          print('CI@' + ''.join(secrets.choice(chars) for _ in range(24)))
+          chars = string.ascii_letters + string.digits
+          print('Ci1!' + ''.join(secrets.choice(chars) for _ in range(24)))
           PY
           )"
           MYSQL_ROOT_PASSWORD="$(python - <<'PY'
           import secrets, string
-          chars = string.ascii_letters + string.digits + '@#%!'
-          print('CI@' + ''.join(secrets.choice(chars) for _ in range(24)))
+          chars = string.ascii_letters + string.digits
+          print('Ci1!' + ''.join(secrets.choice(chars) for _ in range(24)))
           PY
           )"
           SQLSERVER_SA_PASSWORD="$(python - <<'PY'
           import secrets, string
-          chars = string.ascii_letters + string.digits + '@#%!'
-          print('CI@' + ''.join(secrets.choice(chars) for _ in range(24)))
+          chars = string.ascii_letters + string.digits
+          print('Ci1!' + ''.join(secrets.choice(chars) for _ in range(24)))
           PY
           )"
           {
@@ -142,44 +146,35 @@ jobs:
 
   sqlserver-lab:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Generate SQL Server password
         run: |
           SQLSERVER_SA_PASSWORD="$(python - <<'PY'
           import secrets, string
-          chars = string.ascii_letters + string.digits + '@#%!'
-          print('CI@' + ''.join(secrets.choice(chars) for _ in range(24)))
+          chars = string.ascii_letters + string.digits
+          print('Ci1!' + ''.join(secrets.choice(chars) for _ in range(24)))
           PY
           )"
           echo "SQLSERVER_SA_PASSWORD=${SQLSERVER_SA_PASSWORD}" >> "$GITHUB_ENV"
-      - name: Start SQL Server lab
-        run: docker compose -f docker-compose.database-lab.yml up -d
-      - name: Wait for SQL Server
+      - name: Run real SQL Server acceptance lab
+        run: python scripts/sqlserver_lab.py --output-dir artifacts/v31
+      - name: Collect SQL Server diagnostics
+        if: always()
         run: |
-          for i in {1..60}; do
-            if docker compose -f docker-compose.database-lab.yml exec -T sqlserver sh -lc 'test -x /opt/mssql-tools18/bin/sqlcmd && /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "SELECT 1"'; then
-              exit 0
-            fi
-            sleep 5
-          done
-          docker compose -f docker-compose.database-lab.yml logs --tail=200 sqlserver
-          exit 1
-      - name: Run SQL Server scripts
-        run: |
-          mkdir -p artifacts/v31
-          {
-            docker compose -f docker-compose.database-lab.yml exec -T sqlserver sh -lc '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -i /sqlserver-lab/01_schema.sql'
-            docker compose -f docker-compose.database-lab.yml exec -T sqlserver sh -lc '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -i /sqlserver-lab/02_seed.sql'
-            docker compose -f docker-compose.database-lab.yml exec -T sqlserver sh -lc '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -i /sqlserver-lab/03_queries.sql'
-          } | tee artifacts/v31/sqlserver.txt
+          mkdir -p artifacts/v31/logs
+          docker compose -f docker-compose.database-lab.yml ps -a > artifacts/v31/sqlserver_ps.txt || true
+          docker compose -f docker-compose.database-lab.yml logs --no-color --tail=300 sqlserver > artifacts/v31/logs/sqlserver.log || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: sqlserver-lab-artifacts
-          path: artifacts/v31/sqlserver.txt
+          path: artifacts/v31
           if-no-files-found: warn
       - name: Stop SQL Server lab
         if: always()
-        run: docker compose -f docker-compose.database-lab.yml stop
+        run: docker compose -f docker-compose.database-lab.yml stop sqlserver || true
