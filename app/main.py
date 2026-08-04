@@ -18,7 +18,6 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from .db import (
-    DATABASE_URL,
     Customer,
     ImplementationTask,
     ImplementationProject,
@@ -31,6 +30,7 @@ from .db import (
     SalesOrder,
     SalesOrderItem,
     Warehouse,
+    database_backend,
     get_session,
     init_db,
     now_utc,
@@ -176,7 +176,7 @@ def health(db: Session = Depends(get_session)):
             "status": "ok",
             "service": "制造业 ERP 实施交付实验室",
             "app_env": os.getenv("APP_ENV", "dev"),
-            "database": "mysql" if DATABASE_URL.startswith("mysql") else "sqlite",
+            "database": database_backend(),
         }
     )
 
