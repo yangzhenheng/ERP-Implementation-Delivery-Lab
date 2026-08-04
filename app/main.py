@@ -67,8 +67,8 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(
-    title="制造业 ERP 实施交付实验室 V3",
-    version="3.0.0",
+    title="制造业 ERP 实施交付实验室 V3.1",
+    version="3.1.0",
     description="面向国内 ERP / 软件实施工程师面试的个人实施交付演示项目。业务数据均为模拟数据，不代表真实客户生产环境。",
     lifespan=lifespan,
 )

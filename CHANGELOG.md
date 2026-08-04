@@ -1,5 +1,14 @@
 # 更新日志
 
+## 3.1.0 - 2026-08-04
+
+- 增加严格全栈验证模式，`--require-full-stack` 下不允许 Docker 端口 SKIP。
+- 增加容器内 MySQL backup/restore PowerShell 脚本。
+- 增加可恢复 Nginx 502 故障注入、验证和修复脚本。
+- 增加 Playwright E2E 冒烟测试文件，默认跳过，需 `RUN_E2E=1` 和浏览器依赖。
+- 增加 V3.1 阻塞证据、Linux runtime 证据和截图清单。
+- 当前环境仍缺 Docker CLI / Docker Desktop / Playwright 下载能力，因此全栈实跑与 E2E 保持 BLOCKED / NOT VERIFIED。
+
 ## 3.0.0 - 2026-08-01
 
 - 增加轻量 ERP 后台页面，主演示可通过 UI 完成客户新增、订单创建、库存校验、问题工单和项目商务查看。

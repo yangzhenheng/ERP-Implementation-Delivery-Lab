@@ -1,6 +1,6 @@
-# V3 运行验证记录
+# V3.1 运行验证记录
 
-时间：2026-08-01 16:02:27 +08:00
+时间：2026-08-04 12:58:47 +08:00
 
 ## Docker / MySQL / Redis / Nginx
 
@@ -29,6 +29,7 @@
 | `python scripts/verify_v3.py --base-url http://127.0.0.1:8000` | API 和前端页面均通过；Docker 端口为 SKIP；`default_exit=0` | PASS |
 | `python scripts/verify_v3.py --base-url http://localhost --require-full-stack` | `localhost:80/3306/6379` 不可达；`strict_exit=1` | BLOCKED |
 | `python scripts/network_check.py` | `localhost:8000` PASS；`localhost:80/3306/6379` FAIL；`network_exit=1` | BLOCKED |
+| `pytest tests/e2e -q` | Playwright 未安装，`4 skipped` | NOT VERIFIED |
 
 ## .env 安全检查
 

@@ -1,13 +1,13 @@
 # 项目验证证据
 
-日期：2026-08-01
+日期：2026-08-04
 
-版本：3.0.0
+版本：3.1.0
 
 ## 已在本地真实验证
 
 - 已执行自动化测试：`pytest -q`
-- 测试结果：`24 passed`
+- 测试结果：`24 passed, 4 skipped`
 - 已执行 Python 编译检查：`python -m compileall app scripts tests`
 - 已执行 V3 本地 HTTP 验证：`python scripts/verify_v3.py --base-url http://127.0.0.1:8000`
 - V3 API 验证结果：`/health`、`/api/dashboard`、`/api/customers`、`/api/products`、`/api/inventory`、`/api/orders`、`/api/issues`、`/api/implementation`、`/api/implementation/tasks`、`/api/commercial`、`/api/commercial/summary`、`/api/system/status` 均为 `PASS`
@@ -15,6 +15,7 @@
 - 已验证 CSV 导入脚本，结果为 `success=8, failed=0, skipped=0`
 - 已执行 `scripts/network_check.py`，脚本真实报告本机 80/3306/6379 不可达，8000 可达
 - 已执行严格验证：`python scripts/verify_v3.py --base-url http://localhost --require-full-stack`，结果 `strict_exit=1`，原因是 80/3306/6379 不可达
+- 已执行 `pytest tests/e2e -q`，结果 `4 skipped`，原因是 Playwright 安装失败
 
 ## 未验证项
 
