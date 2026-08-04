@@ -29,6 +29,7 @@ class MysqlLab:
         self.base_url = base_url.rstrip("/")
         self.lines: list[str] = []
         self.http_lines: list[str] = []
+        self.http_required = False
 
     def log(self, status: str, message: str) -> None:
         line = f"[{status}] {message}"
@@ -38,14 +39,18 @@ class MysqlLab:
     def docker_mysql(self, sql: str, database: str | None = None, check: bool = True) -> subprocess.CompletedProcess:
         db_arg = f" {shlex.quote(database)}" if database else ""
         shell = f'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot --default-character-set=utf8mb4{db_arg}'
-        return subprocess.run(
+        result = subprocess.run(
             ["docker", "compose", "-f", self.compose_file, "exec", "-T", "mysql", "sh", "-lc", shell],
             cwd=ROOT_DIR,
             input=sql,
             text=True,
             capture_output=True,
-            check=check,
+            check=False,
         )
+        if check and result.returncode != 0:
+            detail = result.stderr.strip() or result.stdout.strip() or f"exit={result.returncode}"
+            raise LabError(f"MySQL command failed: {detail}")
+        return result
 
     def dump_database(self, backup_file: Path) -> None:
         self.backup_dir.mkdir(parents=True, exist_ok=True)
@@ -155,6 +160,7 @@ class MysqlLab:
 
     def run_restore_lab(self, backup_file: Path | None) -> int:
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.http_required = True
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         temp_db = f"erp_demo_restore_validation_{timestamp}"
         pre_restore = self.backup_dir / f"erp_demo_pre_restore_{timestamp}.sql"
@@ -174,7 +180,7 @@ class MysqlLab:
             self.import_dump(temp_db, backup_file)
             self.validate_database(temp_db)
 
-            code = f"BACKUP-RESTORE-V31-{timestamp}"
+            code = f"BR31-{timestamp}"
             self.docker_mysql(
                 "INSERT INTO customers (customer_code, customer_name, contact, phone, address, status) "
                 f"VALUES ('{code}', 'Backup Restore V31 Customer', 'Lab', '13800009999', 'Restore lab', 'active');\n",
@@ -215,7 +221,12 @@ class MysqlLab:
         report = self.output_dir / "backup_restore.txt"
         report.write_text("\n".join(self.lines) + "\n", encoding="utf-8")
         http_report = self.output_dir / "backup_restore_http.txt"
-        http_content = self.http_lines or ["[NOT RUN] Application HTTP validation is not required for backup-only mode."]
+        if self.http_lines:
+            http_content = self.http_lines
+        elif self.http_required:
+            http_content = ["[FAIL] Application HTTP validation was not reached because database restore validation failed."]
+        else:
+            http_content = ["[NOT RUN] Application HTTP validation is not required for backup-only mode."]
         http_report.write_text("\n".join(http_content) + "\n", encoding="utf-8")
 
 

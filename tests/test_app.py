@@ -129,6 +129,16 @@ def test_order_confirmed():
         assert result["status"] == "confirmed"
 
 
+def test_generated_order_numbers_are_unique_for_rapid_requests():
+    with TestClient(app) as client:
+        products = unwrap(client.get("/api/products"))
+        product_id = next(row["product_id"] for row in products if row["product_code"] == "SKU-A100")
+        payload = {"customer_id": 1, "items": [{"product_id": product_id, "quantity": 1}]}
+        first = unwrap(client.post("/api/orders", json=payload))
+        second = unwrap(client.post("/api/orders", json=payload))
+        assert first["order_no"] != second["order_no"]
+
+
 def test_order_confirmed_deducts_inventory():
     with TestClient(app) as client:
         products = unwrap(client.get("/api/products"))

@@ -316,7 +316,7 @@ def create_order(payload: SalesOrderCreate, request: Request, db: Session = Depe
     if not customer:
         raise HTTPException(status_code=404, detail="customer not found")
 
-    order_no = payload.order_no or f"SO{now_utc().strftime('%Y%m%d%H%M%S')}"
+    order_no = payload.order_no or f"SO{now_utc().strftime('%Y%m%d%H%M%S%f')}"
     if db.scalar(select(SalesOrder).where(SalesOrder.order_no == order_no)):
         raise HTTPException(status_code=409, detail="order_no already exists")
 
