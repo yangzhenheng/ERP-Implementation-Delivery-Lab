@@ -4,6 +4,8 @@ import os
 import shlex
 import subprocess
 import sys
+import time
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,14 +19,16 @@ class LabError(RuntimeError):
 
 
 class MysqlLab:
-    def __init__(self, compose_file: str, db_name: str, output_dir: Path):
+    def __init__(self, compose_file: str, db_name: str, output_dir: Path, base_url: str = "http://localhost"):
         if db_name != "erp_demo":
             raise LabError("Refusing restore: target database must be erp_demo")
         self.compose_file = compose_file
         self.db_name = db_name
         self.output_dir = output_dir
         self.backup_dir = ROOT_DIR / "backups"
+        self.base_url = base_url.rstrip("/")
         self.lines: list[str] = []
+        self.http_lines: list[str] = []
 
     def log(self, status: str, message: str) -> None:
         line = f"[{status}] {message}"
@@ -96,6 +100,43 @@ class MysqlLab:
             rows = self.count_table(database, table)
             self.log("PASS", f"{database}.{table} SELECT COUNT(*) = {rows}")
 
+    def request_json(self, path: str, timeout: int = 60) -> dict:
+        deadline = time.time() + timeout
+        last_error = ""
+        while time.time() < deadline:
+            try:
+                with urllib.request.urlopen(f"{self.base_url}{path}", timeout=10) as response:
+                    status = response.status
+                    payload = json.loads(response.read().decode("utf-8"))
+                if status != 200:
+                    raise LabError(f"HTTP status was {status}")
+                if payload.get("code") != 0:
+                    raise LabError(f"JSON code was {payload.get('code')}")
+                self.http_lines.append(f"[PASS] GET {path} status=200 code=0")
+                return payload
+            except Exception as exc:
+                last_error = str(exc)
+                time.sleep(2)
+        self.http_lines.append(f"[FAIL] GET {path}: {last_error}")
+        raise LabError(f"GET {path} failed after restore: {last_error}")
+
+    def validate_application_http(self) -> None:
+        health = self.request_json("/health").get("data")
+        if not isinstance(health, dict) or health.get("status") != "ok" or health.get("database") != "mysql":
+            raise LabError(f"Invalid /health data after restore: {health}")
+        self.http_lines.append("[PASS] /health data.status=ok data.database=mysql")
+
+        customers = self.request_json("/api/customers").get("data")
+        if not isinstance(customers, list) or not customers:
+            raise LabError("/api/customers did not return a non-empty list after restore")
+        self.http_lines.append(f"[PASS] /api/customers returned {len(customers)} rows")
+
+        dashboard = self.request_json("/api/dashboard").get("data")
+        if not isinstance(dashboard, dict) or not dashboard:
+            raise LabError("/api/dashboard did not return a non-empty object after restore")
+        self.http_lines.append("[PASS] /api/dashboard returned valid data")
+        self.log("PASS", "Application HTTP validation passed after MySQL restore")
+
     def restore_formal_database(self, backup_file: Path, rollback_file: Path) -> None:
         try:
             self.docker_mysql(
@@ -151,6 +192,7 @@ class MysqlLab:
             if found != 0:
                 raise LabError("Restore validation customer still exists after restore")
 
+            self.validate_application_http()
             self.log("PASS", "MySQL backup restore lab completed")
             return 0
         except Exception as exc:
@@ -169,8 +211,12 @@ class MysqlLab:
         return int(result.stdout.strip().splitlines()[-1])
 
     def write_report(self) -> None:
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         report = self.output_dir / "backup_restore.txt"
         report.write_text("\n".join(self.lines) + "\n", encoding="utf-8")
+        http_report = self.output_dir / "backup_restore_http.txt"
+        http_content = self.http_lines or ["[NOT RUN] Application HTTP validation is not required for backup-only mode."]
+        http_report.write_text("\n".join(http_content) + "\n", encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:
@@ -179,13 +225,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--db-name", default=os.getenv("DB_NAME", "erp_demo"))
     parser.add_argument("--backup-file", type=Path)
     parser.add_argument("--backup-only", action="store_true")
+    parser.add_argument("--base-url", default="http://localhost")
     parser.add_argument("--output-dir", type=Path, default=ROOT_DIR / "artifacts" / "v31")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    lab = MysqlLab(args.compose_file, args.db_name, args.output_dir)
+    lab = MysqlLab(args.compose_file, args.db_name, args.output_dir, args.base_url)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     if args.backup_only:
         backup_file = args.backup_file or (lab.backup_dir / f"{args.db_name}_{timestamp}.sql")
